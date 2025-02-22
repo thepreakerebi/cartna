@@ -125,8 +125,8 @@ exports.updateBranch = async (req, res) => {
       });
     }
 
-    // Check authorization - allow both admin and branch manager
-    const isAdmin = req.admin && req.admin.id === branch.createdBy.toString();
+    // Check authorization - allow only admin who created the branch and the branch manager
+    const isAdmin = req.admin && req.admin.role === 'admin' && req.admin.id === branch.createdBy.toString();
     const isBranchManager = req.admin && 
                           req.admin.role === 'branch_manager' && 
                           req.admin.phoneNumber === branch.manager.phoneNumber;

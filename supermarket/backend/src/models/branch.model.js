@@ -50,8 +50,7 @@ const branchSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    trim: true,
-    unique: true
+    trim: true
   },
   location: {
     placeId: {
@@ -89,6 +88,9 @@ const branchSchema = new mongoose.Schema({
 
 // Create a geospatial index on the location.coordinates field
 branchSchema.index({ 'location.coordinates': '2dsphere' });
+
+// Create a compound index for name and createdBy to ensure uniqueness within a supermarket
+branchSchema.index({ name: 1, createdBy: 1 }, { unique: true });
 
 // Hash manager's password before saving
 branchSchema.pre('save', async function(next) {

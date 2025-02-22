@@ -56,15 +56,38 @@ exports.verifyManagerPhone = async (req, res) => {
 // Create a new branch
 exports.createBranch = async (req, res) => {
   try {
+    // Ensure the user is an admin
+    if (!req.admin || req.admin.role === 'branch_manager') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only administrator can create branches'
+      });
+    }
+
     const { manager, name, location } = req.body;
+
+    // Check if branch name already exists for this supermarket
+    const existingBranch = await Branch.findOne({
+      createdBy: req.admin.id,
+      name: name
+    });
+
+    if (existingBranch) {
+      return res.status(400).json({
+        success: false,
+        message: 'A branch with this name already exists'
+      });
+    }
     
-    // Create new branch with manager details
+    // Create new branch with manager details and supermarket reference
     const branch = new Branch({
       manager,
       name,
       location,
+      supermarketId: req.admin.id,
       createdBy: req.admin.id
     });
+
 
     await branch.save();
 
@@ -91,10 +114,10 @@ exports.createBranch = async (req, res) => {
       data: branch
     });
   } catch (error) {
-    if (error.code === 11000) {
+    if (error.code === 11000 && error.keyPattern && error.keyPattern['name'] && error.keyPattern['createdBy']) {
       return res.status(400).json({
         success: false,
-        message: 'Branch name already exists'
+        message: 'A branch with this name already exists'
       });
     }
     res.status(500).json({
@@ -107,7 +130,9 @@ exports.createBranch = async (req, res) => {
 // Get all branches
 exports.getAllBranches = async (req, res) => {
   try {
-    const branches = await Branch.find().populate('createdBy', 'username email');
+    // If admin, only show branches of their supermarket
+    const query = req.admin.role === 'admin' ? { supermarketId: req.admin.id } : {};
+    const branches = await Branch.find(query).populate('createdBy', 'username email').populate('supermarketId', 'supermarketName');
     res.status(200).json({
       success: true,
       data: branches
@@ -123,7 +148,10 @@ exports.getAllBranches = async (req, res) => {
 // Get single branch
 exports.getBranch = async (req, res) => {
   try {
-    const branch = await Branch.findById(req.params.id).populate('createdBy', 'username email');
+    const branch = await Branch.findOne({
+      _id: req.params.id,
+      supermarketId: req.admin.id
+    }).populate('createdBy', 'username email').populate('supermarketId', 'supermarketName');
     if (!branch) {
       return res.status(404).json({
         success: false,
@@ -217,10 +245,10 @@ exports.updateBranch = async (req, res) => {
       data: updatedBranch
     });
   } catch (error) {
-    if (error.code === 11000) {
+    if (error.code === 11000 && error.keyPattern && error.keyPattern['name'] && error.keyPattern['createdBy']) {
       return res.status(400).json({
         success: false,
-        message: 'Branch name already exists'
+        message: 'A branch with this name already exists in your supermarket'
       });
     }
     res.status(500).json({

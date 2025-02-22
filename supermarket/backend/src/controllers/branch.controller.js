@@ -213,11 +213,11 @@ exports.deleteBranch = async (req, res) => {
       });
     }
 
-    // Check if the user is an admin
-    if (!req.admin || req.admin.role === 'branch_manager') {
+    // Check if the user is an admin and is the one who created the branch
+    if (!req.admin || req.admin.role === 'branch_manager' || req.admin.id !== branch.createdBy.toString()) {
       return res.status(403).json({
         success: false,
-        message: 'Only administrators can delete branches'
+        message: 'Only the administrator who created this branch can delete it'
       });
     }
 
@@ -226,7 +226,7 @@ exports.deleteBranch = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Branch deleted successfully'
+      message: '1 branch deleted'
     });
   } catch (error) {
     res.status(500).json({

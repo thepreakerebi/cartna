@@ -1,0 +1,23 @@
+{
+  "name": "lemoncart",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "supermarket/backend",
+    "supermarket/frontend"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev -w @lemoncart/backend",
+    "dev:frontend": "npm run dev -w @lemoncart/frontend",
+    "build:backend": "npm run build -w @lemoncart/backend",
+    "build:frontend": "npm run build -w @lemoncart/frontend",
+    "start:backend": "npm run start -w @lemoncart/backend",
+    "start:frontend": "npm run start -w @lemoncart/frontend"
+  },
+  "devDependencies": {
+    "@types/validator": "^13.12.2"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.1.0"
+  }
+}

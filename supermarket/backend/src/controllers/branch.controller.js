@@ -1,57 +1,6 @@
 const Branch = require('../models/branch.model');
 const verify = require('../config/vonage');
 
-// Verify branch manager's phone number
-/*
-exports.verifyManagerPhone = async (req, res) => {
-  try {
-    const { branchId, code } = req.body;
-    
-    // Find the branch
-    const branch = await Branch.findById(branchId);
-    if (!branch) {
-      return res.status(404).json({
-        success: false,
-        message: 'Branch not found'
-      });
-    }
-
-    // Check if verification is pending
-    if (!branch.manager.verificationRequestId) {
-      return res.status(400).json({
-        success: false,
-        message: 'No verification request pending'
-      });
-    }
-
-    // Verify the code using Vonage
-    const result = await verify.check(branch.manager.verificationRequestId, code);
-
-    if (result.status === '0') {
-      // Update branch manager's phone verification status
-      branch.manager.phoneVerified = true;
-      branch.manager.verificationRequestId = null;
-      await branch.save();
-
-      return res.status(200).json({
-        success: true,
-        message: 'Phone number verified successfully',
-        data: branch
-      });
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid verification code'
-      });
-    }
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
-  }
-};
-*/
 
 // Create a new branch
 exports.createBranch = async (req, res) => {
@@ -130,9 +79,9 @@ exports.createBranch = async (req, res) => {
 // Get all branches
 exports.getAllBranches = async (req, res) => {
   try {
-    // If admin, only show branches of their supermarket
-    const query = req.admin.role === 'admin' ? { supermarketId: req.admin.id } : {};
-    const branches = await Branch.find(query).populate('createdBy', 'username email').populate('supermarketId', 'supermarketName');
+    // If admin, only show branches they created
+    const query = { createdBy: req.admin.id };
+    const branches = await Branch.find(query).populate('createdBy', 'username email');
     res.status(200).json({
       success: true,
       data: branches

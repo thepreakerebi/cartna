@@ -8,19 +8,10 @@ const categorySchema = new mongoose.Schema({
     trim: true,
     minlength: 2,
     maxlength: 50,
-    unique: true,
     set: function(value) {
       if (!value) return value;
       return value.charAt(0).toUpperCase() + value.slice(1);
     }
-  },
-  name: {
-    type: String,
-    required: [true, 'Category name is required'],
-    trim: true,
-    minlength: 2,
-    maxlength: 50,
-    unique: true
   },
   description: {
     type: String,
@@ -32,6 +23,11 @@ const categorySchema = new mongoose.Schema({
     ref: 'Branch',
     required: true
   },
+  supermarketId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Admin',
+    required: true
+  },
   active: {
     type: Boolean,
     default: true
@@ -39,6 +35,9 @@ const categorySchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+// Updated compound index to use supermarketId instead of createdBy
+categorySchema.index({ name: 1, supermarketId: 1 }, { unique: true });
 
 // Validation schema
 const validateCategory = (category, isUpdate = false) => {

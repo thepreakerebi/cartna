@@ -1,5 +1,6 @@
 const Category = require('../models/category.model');
 const { validateCategory } = require('../models/category.model');
+const Branch = require('../models/branch.model');
 
 // Create a new category (Branch Manager only)
 exports.createCategory = async (req, res) => {
@@ -24,8 +25,22 @@ exports.createCategory = async (req, res) => {
     const capitalizedName = req.body.name.charAt(0).toUpperCase() + req.body.name.slice(1);
     req.body.name = capitalizedName;
 
-    // Check if category with same name already exists
-    const existingCategory = await Category.findOne({ name: capitalizedName });
+    // Get the branch's supermarket ID
+    const branch = await Branch.findById(req.user.branchId);
+    if (!branch) {
+      return res.status(404).json({
+        success: false,
+        message: 'Branch not found'
+      });
+    }
+
+    // Check if category with same name already exists in the same supermarket
+    const existingCategory = await Category.findOne({
+      name: capitalizedName,
+      $or: [
+        { createdBy: { $in: await Branch.find({ createdBy: branch.createdBy }).distinct('_id') } }
+      ]
+    });
     if (existingCategory) {
       return res.status(400).json({
         success: false,
@@ -56,7 +71,14 @@ exports.createCategory = async (req, res) => {
 // Get all categories
 exports.getAllCategories = async (req, res) => {
   try {
-    const categories = await Category.find({ active: true })
+    let query = { active: true };
+    
+    // If branch manager, only show their categories
+    if (req.user.role === 'branch_manager') {
+      query.createdBy = req.user.branchId;
+    }
+
+    const categories = await Category.find(query)
       .populate('createdBy', 'name')
       .sort('-createdAt');
 
@@ -125,8 +147,8 @@ exports.updateCategory = async (req, res) => {
     }
 
     if (req.user.role !== 'admin' && 
-        req.user.role === 'branch_manager' && 
-        category.createdBy.toString() !== req.user.branchId) {
+        (req.user.role === 'branch_manager' && 
+        category.createdBy.toString() !== req.user.branchId)) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this category'
@@ -172,8 +194,8 @@ exports.deleteCategory = async (req, res) => {
     }
 
     if (req.user.role !== 'admin' && 
-        req.user.role === 'branch_manager' && 
-        category.createdBy.toString() !== req.user.branchId) {
+        (req.user.role === 'branch_manager' && 
+        category.createdBy.toString() !== req.user.branchId)) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this category'

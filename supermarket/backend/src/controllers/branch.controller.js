@@ -27,6 +27,18 @@ exports.createBranch = async (req, res) => {
         message: 'A branch with this name already exists'
       });
     }
+
+    // Check if phone number is already in use by another branch manager
+    const existingPhoneNumber = await Branch.findOne({
+      'manager.phoneNumber': manager.phoneNumber
+    });
+
+    if (existingPhoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'This phone number is already registered to another branch manager'
+      });
+    }
     
     // Create new branch with manager details and supermarket reference
     const branch = new Branch({
@@ -39,24 +51,6 @@ exports.createBranch = async (req, res) => {
 
 
     await branch.save();
-
-    /* Commenting out phone verification
-    try {
-      const result = await verify.request({
-        to: manager.phone,
-        brand: "LemonCart"
-      });
-
-      if (result.status === '0') {
-        branch.manager.verificationRequestId = result.request_id;
-        await branch.save();
-      } else {
-        console.error('Failed to send verification SMS:', result);
-      }
-    } catch (verifyError) {
-      console.error('Vonage verification error:', verifyError);
-    }
-    */
 
     res.status(201).json({
       success: true,
@@ -99,8 +93,8 @@ exports.getBranch = async (req, res) => {
   try {
     const branch = await Branch.findOne({
       _id: req.params.id,
-      supermarketId: req.admin.id
-    }).populate('createdBy', 'username email').populate('supermarketId', 'supermarketName');
+      createdBy: req.admin.id
+    }).populate('createdBy', 'username email');
     if (!branch) {
       return res.status(404).json({
         success: false,

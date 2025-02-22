@@ -9,10 +9,9 @@ const authMiddleware = async (req, res, next) => {
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = {
+        req.admin = {
             id: decoded.id,
-            role: decoded.role,
-            branchId: decoded.id  // Store the branch ID for branch managers
+            role: decoded.role
         };
         next();
     } catch (error) {

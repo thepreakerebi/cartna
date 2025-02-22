@@ -18,18 +18,6 @@ const adminSchema = new mongoose.Schema(
       minlength: 2,
       maxlength: 50
     },
-    phone: {
-      type: String,
-      required: [true, 'Phone number is required'],
-      unique: true,
-      trim: true,
-      validate: {
-        validator: function(v) {
-          return /^\+[1-9]\d{1,14}$/.test(v);
-        },
-        message: props => `${props.value} is not a valid phone number! Must start with + and contain 1-15 digits`
-      }
-    },
     email: {
       type: String,
       required: false,
@@ -39,7 +27,6 @@ const adminSchema = new mongoose.Schema(
       lowercase: true,
       validate: {
         validator: function(v) {
-          if (!v) return true; // Allow empty email
           return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
         },
         message: props => `${props.value} is not a valid email address!`
@@ -54,7 +41,17 @@ const adminSchema = new mongoose.Schema(
       type: Boolean,
       default: true
     },
-  
+    supermarketName: {
+      type: String,
+      required: [true, 'Supermarket name is required'],
+      unique: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 100,
+      set: function(v) {
+        return v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
+      }
+    },
     logo: {
       type: String,
       required: false,
@@ -66,6 +63,18 @@ const adminSchema = new mongoose.Schema(
         },
         message: props => `${props.value} is not a valid URL!`
       }
+    },
+    phone: {
+      type: String,
+      required: [true, 'Phone number is required'],
+      unique: true,
+      trim: true,
+      validate: {
+        validator: function(v) {
+          return /^\+[1-9]\d{1,14}$/.test(v);
+        },
+        message: props => `${props.value} is not a valid phone number! Must start with + followed by country code and number`
+      }
     }
   },
   {
@@ -73,30 +82,7 @@ const adminSchema = new mongoose.Schema(
   }
 );
 
-// Ensure only one active admin exists
-adminSchema.pre('save', async function(next) {
-  try {
-    if (!this.isActive) return next();
-
-    const Admin = this.model('Admin');
-    const query = { 
-      isActive: true,
-      _id: { $ne: this._id }
-    };
-
-    const existingAdmin = await Admin.findOne(query);
-    if (existingAdmin) {
-      throw new Error(
-        this.isNew 
-          ? 'An active admin already exists' 
-          : 'Another active admin already exists'
-      );
-    }
-    next();
-  } catch (error) {
-    next(error instanceof Error ? error : new Error('Error checking active admin'));
-  }
-});
+// No need for single-admin restriction since each admin represents a unique supermarket
 
 // Hash password before saving
 adminSchema.pre('save', async function(next) {
@@ -131,10 +117,13 @@ const validateAdmin = (admin) => {
   const schema = Joi.object({
     firstName: Joi.string().min(2).max(50).optional(),
     lastName: Joi.string().min(2).max(50).optional(),
-    phone: Joi.string().pattern(/^\+?[1-9]\d{1,14}$/).optional(),
-    email: Joi.string().email().optional().allow(''),
+    email: Joi.string().email().optional(),
     password: Joi.string().min(8).optional(),
-    isActive: Joi.boolean().optional()
+    isActive: Joi.boolean().optional(),
+    supermarketName: Joi.string().min(2).max(100).required(),
+    phone: Joi.string().pattern(/^\+[1-9]\d{1,14}$/).required().messages({
+      'string.pattern.base': 'Phone number must start with + followed by country code and number'
+    })
   }).unknown(true);
 
   return schema.validate(admin);

@@ -2,13 +2,12 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const Admin = require('../models/admin.model');
 const { validateAdmin } = require('../models/admin.model');
-const { sendVerificationSMS, checkVerificationCode } = require('../services/vonage.service');
 const cloudinary = require('../config/cloudinary');
 
 // Admin signup controller
 exports.adminSignup = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, phone } = req.body;
+    const { firstName, lastName, email, password, phone, supermarketName } = req.body;
     let logoUrl;
 
     if (!phone) {
@@ -18,8 +17,17 @@ exports.adminSignup = async (req, res) => {
     // Format phone number to ensure it starts with '+'
     const formattedPhone = phone.startsWith('+') ? phone : `+${phone}`;
 
+    // Capitalize supermarket name
+    const formattedSupermarketName = supermarketName.charAt(0).toUpperCase() + supermarketName.slice(1);
+
+    // Check if supermarket name is already registered
+    const existingSupermarket = await Admin.findOne({ supermarketName: formattedSupermarketName });
+    if (existingSupermarket) {
+      return res.status(400).json({ message: 'Supermarket name is already registered' });
+    }
+
     // Validate input
-    const { error } = validateAdmin({ firstName, lastName, email, password, phone: formattedPhone });
+    const { error } = validateAdmin({ firstName, lastName, email, password, phone: formattedPhone, supermarketName: formattedSupermarketName });
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
     }
@@ -38,43 +46,6 @@ exports.adminSignup = async (req, res) => {
       }
     }
 
-    // Check if admin already exists
-    const existingAdmin = await Admin.findOne({ isActive: true });
-    if (existingAdmin) {
-      return res.status(400).json({ message: 'An active admin already exists' });
-    }
-
-    // Handle logo upload if provided
-    if (req.file) {
-      // Check file size (10MB = 10 * 1024 * 1024 bytes)
-      if (req.file.size > 10 * 1024 * 1024) {
-        return res.status(400).json({ message: 'Logo file size must not exceed 10MB' });
-      }
-
-      try {
-        const uploadPromise = new Promise((resolve, reject) => {
-          const uploadStream = cloudinary.uploader.upload_stream({
-            folder: 'lemoncart/admin_logos',
-            use_filename: true
-          }, (error, result) => {
-            if (error) {
-              console.error('Logo upload error:', error);
-              reject(error);
-            } else {
-              resolve(result);
-            }
-          });
-          uploadStream.end(req.file.buffer);
-        });
-
-        const uploadResult = await uploadPromise;
-        logoUrl = uploadResult.secure_url;
-      } catch (uploadError) {
-        console.error('Logo upload error:', uploadError);
-        return res.status(500).json({ message: 'Error uploading logo' });
-      }
-    }
-
     // Create new admin
     const admin = new Admin({
       firstName,
@@ -82,6 +53,7 @@ exports.adminSignup = async (req, res) => {
       email,
       password,
       phone: formattedPhone,
+      supermarketName: formattedSupermarketName,
       isActive: true,
       logo: logoUrl
     });
@@ -146,50 +118,7 @@ exports.adminLogin = async (req, res) => {
   }
 };
 
-// Phone verification controller
-exports.verifyPhone = async (req, res) => {
-  try {
-    const { phone, code } = req.body;
 
-    if (!phone || !code) {
-      return res.status(400).json({ message: 'Phone number and verification code are required' });
-    }
-
-    // Format phone number to ensure it starts with '+'
-    const formattedPhone = phone.startsWith('+') ? phone : `+${phone}`;
-
-    // Find admin by phone
-    const admin = await Admin.findOne({ phone: formattedPhone });
-    if (!admin) {
-      return res.status(400).json({ message: 'Admin not found' });
-    }
-
-    if (!admin.vonageRequestId) {
-      return res.status(400).json({ message: 'No verification request found' });
-    }
-
-    try {
-      // Verify code using Vonage
-      const isCodeValid = await checkVerificationCode(admin.vonageRequestId, code);
-      if (!isCodeValid) {
-        return res.status(400).json({ message: 'Invalid verification code' });
-      }
-
-      // Update admin verification status
-      admin.isPhoneVerified = true;
-      admin.vonageRequestId = undefined;
-      await admin.save();
-
-      res.json({ message: 'Phone number verified successfully' });
-    } catch (verificationError) {
-      console.error('Verification error:', verificationError);
-      return res.status(500).json({ message: 'Error verifying code. Please try again.' });
-    }
-  } catch (error) {
-    console.error('Phone verification error:', error);
-    res.status(500).json({ message: 'Error verifying phone number' });
-  }
-};
 
 // Admin update controller
 exports.updateAdmin = async (req, res) => {
@@ -209,7 +138,7 @@ exports.updateAdmin = async (req, res) => {
       // Delete old logo if it exists
       if (admin.logo) {
         try {
-          const publicId = admin.logo.split('/').slice(-1)[0].split('.')[0];
+          const publicId = admin.logo.split('/').pop().split('.')[0];
           await cloudinary.uploader.destroy(`lemoncart/admin_logos/${publicId}`);
         } catch (deleteError) {
           console.error('Error deleting old logo:', deleteError);
@@ -264,7 +193,17 @@ exports.updateAdmin = async (req, res) => {
         if (existingPhone) {
           return res.status(400).json({ message: 'Phone number is already registered' });
         }
-        updateData.phone = formattedPhone;
+
+        try {
+          // Send verification SMS for new phone number
+          const requestId = await sendVerificationSMS(formattedPhone);
+          updateData.phone = formattedPhone;
+          updateData.isPhoneVerified = false;
+          updateData.vonageRequestId = requestId;
+        } catch (smsError) {
+          console.error('SMS verification error:', smsError);
+          return res.status(500).json({ message: 'Error sending verification SMS. Please try again.' });
+        }
       }
     }
 

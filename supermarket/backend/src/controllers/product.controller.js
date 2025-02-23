@@ -553,7 +553,7 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
-// Delete a product (Admin and Branch Manager)
+// Delete a product (Branch Manager only)
 exports.deleteProduct = async (req, res) => {
   try {
     // Find the product and ensure it exists
@@ -565,12 +565,18 @@ exports.deleteProduct = async (req, res) => {
       });
     }
 
-    // Authorization check - only admin or original branch manager can delete
-    if (req.user.role === 'branch_manager' && 
-        product.createdBy.toString() !== req.user.branchId) {
+    // Authorization check - only the branch manager who created the product can delete it
+    if (req.user.role !== 'branch_manager') {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to delete this product'
+        message: 'Only branch managers can delete products'
+      });
+    }
+
+    if (product.createdBy.toString() !== req.user.branchId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this product. Only the branch manager who created the product can delete it'
       });
     }
 
@@ -578,13 +584,27 @@ exports.deleteProduct = async (req, res) => {
     if (product.images && product.images.length > 0) {
       try {
         const deletePromises = product.images.map(imageUrl => {
-          const publicId = imageUrl.split('/').slice(-1)[0].split('.')[0];
-          return cloudinary.uploader.destroy(`lemoncart/products/${publicId}`);
+          // Extract public ID including the folder path
+          const urlParts = imageUrl.split('/');
+          const fileName = urlParts[urlParts.length - 1];
+          const publicId = `lemoncart/products/${fileName.split('.')[0]}`;
+          return cloudinary.uploader.destroy(publicId);
         });
-        await Promise.all(deletePromises);
+
+        // Wait for all image deletions to complete
+        const deleteResults = await Promise.all(deletePromises);
+
+        // Check if any deletions failed
+        const failedDeletions = deleteResults.filter(result => result.result !== 'ok');
+        if (failedDeletions.length > 0) {
+          console.error('Some images failed to delete from Cloudinary:', failedDeletions);
+        }
       } catch (deleteError) {
-        console.error('Error deleting product images:', deleteError);
-        // Continue with deletion even if image cleanup fails
+        console.error('Error deleting product images from Cloudinary:', deleteError);
+        return res.status(500).json({
+          success: false,
+          message: 'Error deleting product images. Please try again.'
+        });
       }
     }
 

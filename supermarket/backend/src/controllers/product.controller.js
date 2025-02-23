@@ -356,17 +356,54 @@ exports.updateProduct = async (req, res) => {
       });
     }
 
-    // Authorization check - only admin or original branch manager can update
-    if (req.user.role === 'branch_manager' && 
-        product.createdBy.toString() !== req.user.branchId) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to update this product'
-      });
-    }
-
     // Initialize update data with existing product data
     const productData = { ...req.body };
+
+    // Authorization check - only supermarket admin or original branch manager can update
+    if (req.user.role === 'branch_manager') {
+      // For branch manager, check if they created the product
+      if (product.createdBy.toString() !== req.user.branchId) {
+        return res.status(403).json({
+          success: false,
+          message: 'Not authorized to update this product'
+        });
+      }
+
+      // If category is being updated, validate it belongs to the branch manager's supermarket
+      if (productData.category) {
+        const branch = await mongoose.model('Branch').findById(req.user.branchId);
+        if (!branch) {
+          return res.status(404).json({
+            success: false,
+            message: 'Branch not found'
+          });
+        }
+
+        const category = await mongoose.model('Category').findOne({
+          _id: productData.category,
+          supermarketId: branch.createdBy
+        });
+        if (!category) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid category. The category must belong to your supermarket'
+          });
+        }
+      }
+    } else if (req.admin && req.admin.id) {
+      // For supermarket admin, check if product belongs to their supermarket
+      if (product.supermarketId.toString() !== req.admin.id) {
+        return res.status(403).json({
+          success: false,
+          message: 'Not authorized to update this product'
+        });
+      }
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update products'
+      });
+    }
 
     // Check if another product with the same name exists in the same branch (excluding current product)
     if (productData.productName) {
@@ -385,47 +422,48 @@ exports.updateProduct = async (req, res) => {
     
     // Handle image updates if files are provided
     const files = req.files;
-    if (files && Array.isArray(files)) {
-      if (files.length === 0) {
-        // If files array is empty but images were meant to be updated
-        if (req.body.images !== undefined) {
-          return res.status(400).json({
-            success: false,
-            message: 'At least one product image is required when updating images'
-          });
-        }
-      } else if (files.length > 5) {
+    if (files && Array.isArray(files) && files.length > 0) {
+      if (files.length > 5) {
         return res.status(400).json({
           success: false,
           message: 'Maximum 5 images allowed per product'
         });
-      } else {
-        // Delete old images from Cloudinary
-        if (product.images && product.images.length > 0) {
-          try {
-            const deletePromises = product.images.map(imageUrl => {
-              const publicId = imageUrl.split('/').slice(-1)[0].split('.')[0];
-              return cloudinary.uploader.destroy(`lemoncart/products/${publicId}`);
-            });
-            await Promise.all(deletePromises);
-          } catch (deleteError) {
-            console.error('Error deleting old images:', deleteError);
-            // Continue with upload even if deletion fails
-          }
-        }
+      }
 
-        // Process and upload new images
-        const base64Images = files.map(file => `data:${file.mimetype};base64,${file.buffer.toString('base64')}`);
+      // Delete old images from Cloudinary
+      if (product.images && product.images.length > 0) {
         try {
-          const imageUrls = await uploadToCloudinary(base64Images);
-          // Ensure we're explicitly setting the images field in the update
-          productData.images = imageUrls;
-        } catch (error) {
-          return res.status(400).json({
-            success: false,
-            message: 'Error uploading images: ' + error.message
+          const deletePromises = product.images.map(imageUrl => {
+            // Extract public ID including the folder path
+            const urlParts = imageUrl.split('/');
+            const fileName = urlParts[urlParts.length - 1];
+            const publicId = `lemoncart/products/${fileName.split('.')[0]}`;
+            return cloudinary.uploader.destroy(publicId);
           });
+          await Promise.all(deletePromises);
+        } catch (deleteError) {
+          console.error('Error deleting old images:', deleteError);
+          // Continue with upload even if deletion fails
         }
+      }
+
+      // Process and upload new images
+      try {
+        // Convert files to base64 strings for Cloudinary upload
+        const base64Images = files.map(file => `data:${file.mimetype};base64,${file.buffer.toString('base64')}`);
+        
+        // Upload images to Cloudinary using the helper function
+        const imageUrls = await uploadToCloudinary(base64Images);
+        if (!imageUrls || imageUrls.length === 0) {
+          throw new Error('Failed to upload images to Cloudinary');
+        }
+        // Replace the old images array with the new one
+        productData.images = imageUrls;
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: 'Error uploading images: ' + error.message
+        });
       }
     }
 

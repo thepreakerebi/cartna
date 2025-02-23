@@ -158,123 +158,16 @@ exports.supermarketLogin = async (req, res) => {
 
 
 
-// Admin update controller
-exports.updateAdmin = async (req, res) => {
-  try {
-    const adminId = req.admin.id; // Get admin ID from authenticated request
-    const { firstName, lastName, email, phone } = req.body;
-    let logoUrl;
-
-    // Find the admin
-    const admin = await Admin.findById(adminId);
-    if (!admin) {
-      return res.status(404).json({ message: 'Admin not found' });
-    }
-
-    // Handle logo upload if provided
-    if (req.file) {
-      // Delete old logo if it exists
-      if (admin.logo) {
-        try {
-          const publicId = admin.logo.split('/').pop().split('.')[0];
-          await cloudinary.uploader.destroy(`lemoncart/admin_logos/${publicId}`);
-        } catch (deleteError) {
-          console.error('Error deleting old logo:', deleteError);
-          // Continue with upload even if deletion fails
-        }
-      }
-
-      try {
-        const uploadPromise = new Promise((resolve, reject) => {
-          const uploadStream = cloudinary.uploader.upload_stream({
-            folder: 'lemoncart/admin_logos',
-            use_filename: true
-          }, (error, result) => {
-            if (error) {
-              console.error('Logo upload error:', error);
-              reject(error);
-            } else {
-              resolve(result);
-            }
-          });
-          uploadStream.end(req.file.buffer);
-        });
-
-        const uploadResult = await uploadPromise;
-        logoUrl = uploadResult.secure_url;
-      } catch (uploadError) {
-        console.error('Logo upload error:', uploadError);
-        return res.status(500).json({ message: 'Error uploading logo' });
-      }
-    }
-
-    // Prepare update object
-    const updateData = {};
-    if (firstName) updateData.firstName = firstName;
-    if (lastName) updateData.lastName = lastName;
-    if (logoUrl) updateData.logo = logoUrl;
-
-    // Handle email update
-    if (email && email !== admin.email) {
-      const existingEmail = await Admin.findOne({ email, _id: { $ne: adminId } });
-      if (existingEmail) {
-        return res.status(400).json({ message: 'Email is already registered' });
-      }
-      updateData.email = email;
-    }
-
-    // Handle phone update
-    if (phone) {
-      const formattedPhone = phone.startsWith('+250') ? phone : `+250${phone}`;
-      if (formattedPhone !== admin.phone) {
-        const existingPhone = await Admin.findOne({ phone: formattedPhone, _id: { $ne: adminId } });
-        if (existingPhone) {
-          return res.status(400).json({ message: 'Phone number is already registered' });
-        }
-
-        try {
-          // Send verification SMS for new phone number
-          const requestId = await sendVerificationSMS(formattedPhone);
-          updateData.phone = formattedPhone;
-          updateData.isPhoneVerified = false;
-          updateData.vonageRequestId = requestId;
-        } catch (smsError) {
-          console.error('SMS verification error:', smsError);
-          return res.status(500).json({ message: 'Error sending verification SMS. Please try again.' });
-        }
-      }
-    }
-
-    // Validate the update data
-    const { error } = validateAdmin({ ...admin.toObject(), ...updateData });
-    if (error) {
-      return res.status(400).json({ message: error.details[0].message });
-    }
-
-    // Update admin
-    const updatedAdmin = await Admin.findByIdAndUpdate(
-      adminId,
-      updateData,
-      { new: true, select: '-password -vonageRequestId' }
-    );
-
-    res.json({
-      message: phone && phone !== admin.phone ? 
-        'Profile updated successfully. Please verify your new phone number.' :
-        'Profile updated successfully',
-      admin: updatedAdmin
-    });
-  } catch (error) {
-    console.error('Admin update error:', error);
-    res.status(500).json({ message: 'Error updating admin profile' });
-  }
-};
 // Update supermarket profile
 exports.updateSupermarket = async (req, res) => {
   try {
+    if (!req.admin || !req.admin.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
     const supermarketId = req.admin.id;
     const { firstName, lastName, email, mobileNumber, supermarketName } = req.body;
-    let logoUrl;
+    const updateData = {};
 
     // Find the supermarket
     const supermarket = await Supermarket.findById(supermarketId);
@@ -282,9 +175,37 @@ exports.updateSupermarket = async (req, res) => {
       return res.status(404).json({ message: 'Supermarket not found' });
     }
 
+    // Handle supermarket name update
+    if (supermarketName) {
+      const formattedName = supermarketName
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+
+      const existingName = await Supermarket.findOne({
+        supermarketName: formattedName,
+        _id: { $ne: supermarketId }
+      });
+      if (existingName) {
+        return res.status(400).json({ message: 'Supermarket name is already taken' });
+      }
+      updateData.supermarketName = formattedName;
+    }
+
+    // Handle admin name updates
+    if (firstName) {
+      updateData['admin.firstName'] = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+    }
+    if (lastName) {
+      updateData['admin.lastName'] = lastName.charAt(0).toUpperCase() + lastName.slice(1).toLowerCase();
+    }
+
     // Handle mobile number update
     if (mobileNumber) {
       const formattedMobile = mobileNumber.startsWith('+250') ? mobileNumber : `+250${mobileNumber}`;
+      if (!/^\+250[0-9]{9}$/.test(formattedMobile)) {
+        return res.status(400).json({ message: 'Invalid mobile number format. Must be 9 digits with +250 prefix' });
+      }
       if (formattedMobile !== supermarket.admin.mobileNumber) {
         const existingMobile = await Supermarket.findOne({
           'admin.mobileNumber': formattedMobile,
@@ -294,6 +215,23 @@ exports.updateSupermarket = async (req, res) => {
           return res.status(400).json({ message: 'Mobile number is already registered' });
         }
         updateData['admin.mobileNumber'] = formattedMobile;
+      }
+    }
+
+    // Handle email update
+    if (email) {
+      if (!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
+        return res.status(400).json({ message: 'Invalid email format' });
+      }
+      if (email !== supermarket.admin.email) {
+        const existingEmail = await Supermarket.findOne({
+          'admin.email': email.toLowerCase(),
+          _id: { $ne: supermarketId }
+        });
+        if (existingEmail) {
+          return res.status(400).json({ message: 'Email is already registered' });
+        }
+        updateData['admin.email'] = email.toLowerCase();
       }
     }
 
@@ -311,64 +249,25 @@ exports.updateSupermarket = async (req, res) => {
       }
 
       try {
-        const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: 'lemoncart/supermarket_logos'
+        // Convert buffer to base64 string
+        const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+        const result = await cloudinary.uploader.upload(base64Image, {
+          folder: 'lemoncart/supermarket_logos',
+          resource_type: 'auto',
+          public_id: `${supermarketId}_logo_${Date.now()}` // Add unique identifier
         });
-        logoUrl = result.secure_url;
+        updateData.logo = result.secure_url;
       } catch (uploadError) {
         console.error('Logo upload error:', uploadError);
         return res.status(500).json({ message: 'Error uploading logo' });
       }
     }
 
-    // Prepare update object
-    const updateData = {};
-    if (supermarketName) {
-      const formattedName = supermarketName.charAt(0).toUpperCase() + supermarketName.slice(1);
-      // Check if new name is already taken
-      const existingName = await Supermarket.findOne({
-        supermarketName: formattedName,
-        _id: { $ne: supermarketId }
-      });
-      if (existingName) {
-        return res.status(400).json({ message: 'Supermarket name is already taken' });
-      }
-      updateData.supermarketName = formattedName;
+    // Update supermarket if there are changes
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: 'No valid updates provided' });
     }
 
-    // Update admin fields
-    if (firstName) updateData['admin.firstName'] = firstName;
-    if (lastName) updateData['admin.lastName'] = lastName;
-    if (logoUrl) updateData.logo = logoUrl;
-
-    // Handle email update
-    if (email && email !== supermarket.admin.email) {
-      const existingEmail = await Supermarket.findOne({
-        'admin.email': email,
-        _id: { $ne: supermarketId }
-      });
-      if (existingEmail) {
-        return res.status(400).json({ message: 'Email is already registered' });
-      }
-      updateData['admin.email'] = email;
-    }
-
-    // Handle phone update
-    if (phone) {
-      const formattedPhone = phone.startsWith('+250') ? phone : `+250${phone}`;
-      if (formattedPhone !== supermarket.admin.phone) {
-        const existingPhone = await Supermarket.findOne({
-          'admin.phone': formattedPhone,
-          _id: { $ne: supermarketId }
-        });
-        if (existingPhone) {
-          return res.status(400).json({ message: 'Phone number is already registered' });
-        }
-        updateData['admin.phone'] = formattedPhone;
-      }
-    }
-
-    // Update supermarket
     const updatedSupermarket = await Supermarket.findByIdAndUpdate(
       supermarketId,
       { $set: updateData },
@@ -376,7 +275,7 @@ exports.updateSupermarket = async (req, res) => {
     );
 
     res.json({
-      message: 'Profile updated successfully',
+      message: 'Profile changes saved',
       supermarket: updatedSupermarket
     });
   } catch (error) {

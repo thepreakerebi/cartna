@@ -222,15 +222,21 @@ exports.createProduct = async (req, res) => {
       productData.discount = req.body.discount;
     }
 
-    // Generate SKU for the new product
-    const sku = await generateSKU(productData, req.user.branchId);
+    // Generate SKU for the new product if SKU-related fields are provided
+    const skuFields = ['category', 'brand', 'supplierName', 'supplierCode', 'weight', 'skuId'];
+    const hasSkuFields = skuFields.some(field => productData[field] !== undefined);
+    
+    let sku;
+    if (hasSkuFields) {
+      sku = await generateSKU(productData, req.user.branchId);
+    }
 
     const product = new Product({
       ...productData,
       images: imageUrls,
       createdBy: req.user.branchId,
       supermarketId: branch.createdBy,
-      sku
+      ...(sku && { sku })
     });
 
     try {
@@ -506,9 +512,9 @@ exports.updateProduct = async (req, res) => {
       }
     }
 
-    // Generate new SKU if relevant fields are updated
+    // Generate new SKU if relevant fields are updated and product has an existing SKU
     const skuFields = ['category', 'brand', 'supplierName', 'supplierCode', 'weight', 'skuId'];
-    const needsSKUUpdate = skuFields.some(field => productData[field] !== undefined);
+    const needsSKUUpdate = product.sku && skuFields.some(field => productData[field] !== undefined);
     
     if (needsSKUUpdate) {
       try {

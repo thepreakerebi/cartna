@@ -65,7 +65,7 @@ const productSchema = new mongoose.Schema({
   sku: {
     type: String,
     unique: true,
-    required: true
+    sparse: true
   },
   brand: {
     type: String,

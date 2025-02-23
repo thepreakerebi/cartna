@@ -308,12 +308,27 @@ exports.getProduct = async (req, res) => {
       });
     }
 
-    // If branch manager, ensure they can only view their products
-    if (req.user.role === 'branch_manager' && 
-        product.createdBy._id.toString() !== req.user.branchId) {
+    // Authorization check based on user role
+    if (req.user.role === 'branch_manager') {
+      // For branch manager, check if they created the product
+      if (product.createdBy._id.toString() !== req.user.branchId) {
+        return res.status(403).json({
+          success: false,
+          message: 'Not authorized to view this product'
+        });
+      }
+    } else if (req.admin && req.admin.id) {
+      // For supermarket admin, check if product belongs to their supermarket
+      if (product.supermarketId.toString() !== req.admin.id) {
+        return res.status(403).json({
+          success: false,
+          message: 'Not authorized to view this product'
+        });
+      }
+    } else {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to view this product'
+        message: 'Not authorized to view products'
       });
     }
 

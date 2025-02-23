@@ -25,16 +25,15 @@ const supermarketSchema = new mongoose.Schema({
       trim: true,
       lowercase: true
     },
-    phone: {
+    mobileNumber: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
       validate: {
         validator: function(v) {
-          return /^[0-9]{9}$/.test(v.replace(/^\+250/, ''));
+          return v && /^\+250[0-9]{9}$/.test(v);
         },
-        message: props => `${props.value} is not a valid phone number. Please enter 9 digits`
+        message: props => `${props.value} is not a valid mobile number. Please enter a number with +250 prefix followed by 9 digits`
       }
     },
     password: {
@@ -51,6 +50,9 @@ const supermarketSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+// Create a compound index for admin.mobileNumber to ensure uniqueness
+supermarketSchema.index({ 'admin.mobileNumber': 1 }, { unique: true });
 
 // Hash password before saving
 supermarketSchema.pre('save', async function(next) {
@@ -77,8 +79,8 @@ const validateSupermarket = (data) => {
       firstName: Joi.string().required(),
       lastName: Joi.string().required(),
       email: Joi.string().email(),
-      phone: Joi.string().pattern(/^[0-9]{9}$/).required().messages({
-        'string.pattern.base': 'Phone number must be 9 digits'
+      mobileNumber: Joi.string().pattern(/^[0-9]{9}$/).required().messages({
+        'string.pattern.base': 'Mobile number must be 9 digits'
       }),
       password: Joi.string().min(6).required()
     }).required(),

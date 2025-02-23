@@ -7,18 +7,28 @@ const cloudinary = require('../config/cloudinary');
 // Admin signup controller
 exports.supermarketSignup = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, phone, supermarketName } = req.body;
+    const { firstName: rawFirstName, lastName: rawLastName, email, password, mobileNumber, supermarketName } = req.body;
     let logoUrl;
 
-    if (!phone) {
-      return res.status(400).json({ message: 'Phone number is required' });
+    // Validate required fields
+    if (!mobileNumber || !supermarketName || !rawFirstName || !rawLastName || !password) {
+      return res.status(400).json({ message: 'All required fields must be provided' });
     }
 
-    // Format phone number to ensure it's just 9 digits
-    const formattedPhone = phone.startsWith('+250') ? phone.slice(4) : phone;
+    // Capitalize first and last names
+    const firstName = rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1).toLowerCase();
+    const lastName = rawLastName.charAt(0).toUpperCase() + rawLastName.slice(1).toLowerCase();
+
+    // Format mobile number to ensure it's just 9 digits
+    const formattedMobile = mobileNumber.startsWith('+250') ? mobileNumber.slice(4) : mobileNumber;
+
+    // Validate mobile number format
+    if (!/^[0-9]{9}$/.test(formattedMobile)) {
+      return res.status(400).json({ message: 'Mobile number must be 9 digits' });
+    }
 
     // Add +250 prefix for database storage
-    const phoneWithPrefix = `+250${formattedPhone}`;
+    const mobileWithPrefix = `+250${formattedMobile}`;
 
     // Capitalize each word in supermarket name
     const formattedSupermarketName = supermarketName
@@ -32,24 +42,34 @@ exports.supermarketSignup = async (req, res) => {
       return res.status(400).json({ message: 'Supermarket name is already registered' });
     }
 
-    // Validate input
-    const { error } = validateSupermarket({ supermarketName: formattedSupermarketName, admin: { firstName, lastName, email, password, phone: formattedPhone } });
-    if (error) {
-      return res.status(400).json({ message: error.details[0].message });
+    // Check if mobile number is already registered
+    const existingMobile = await Supermarket.findOne({ 'admin.mobileNumber': mobileWithPrefix });
+    if (existingMobile) {
+      return res.status(400).json({ message: 'Mobile number is already registered' });
     }
 
-    // Check if phone number is already registered
-    const existingPhone = await Supermarket.findOne({ 'admin.phone': phoneWithPrefix });
-    if (existingPhone) {
-      return res.status(400).json({ message: 'Phone number is already registered' });
-    }
-
-    // Check if email is already registered
+    // Check if email is already registered (if provided)
     if (email) {
       const existingEmail = await Supermarket.findOne({ 'admin.email': email });
       if (existingEmail) {
         return res.status(400).json({ message: 'Email is already registered' });
       }
+    }
+
+    // Validate input
+    const { error } = validateSupermarket({
+      supermarketName: formattedSupermarketName,
+      admin: {
+        firstName,
+        lastName,
+        email,
+        password,
+        mobileNumber: formattedMobile
+      }
+    });
+
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
     }
 
     // Create new supermarket
@@ -60,7 +80,7 @@ exports.supermarketSignup = async (req, res) => {
         lastName,
         email,
         password,
-        phone: phoneWithPrefix
+        mobileNumber: mobileWithPrefix
       },
       isActive: true,
       logo: logoUrl
@@ -78,17 +98,17 @@ exports.supermarketSignup = async (req, res) => {
 // Admin login controller
 exports.supermarketLogin = async (req, res) => {
   try {
-    const { email, phone, password } = req.body;
+    const { email, mobileNumber, password } = req.body;
 
-    if ((!email && !phone) || !password) {
-      return res.status(400).json({ message: 'Email/phone and password are required' });
+    if ((!email && !mobileNumber) || !password) {
+      return res.status(400).json({ message: 'Email/mobile number and password are required' });
     }
 
-    // Find supermarket by admin email or phone
+    // Find supermarket by admin email or mobile
     const supermarket = await Supermarket.findOne({
       $or: [
         { 'admin.email': email || '' },
-        { 'admin.phone': phone || '' }
+        { 'admin.mobileNumber': mobileNumber || '' }
       ]
     });
 
@@ -249,13 +269,28 @@ exports.updateAdmin = async (req, res) => {
 exports.updateSupermarket = async (req, res) => {
   try {
     const supermarketId = req.admin.id;
-    const { firstName, lastName, email, phone, supermarketName } = req.body;
+    const { firstName, lastName, email, mobileNumber, supermarketName } = req.body;
     let logoUrl;
 
     // Find the supermarket
     const supermarket = await Supermarket.findById(supermarketId);
     if (!supermarket) {
       return res.status(404).json({ message: 'Supermarket not found' });
+    }
+
+    // Handle mobile number update
+    if (mobileNumber) {
+      const formattedMobile = mobileNumber.startsWith('+250') ? mobileNumber : `+250${mobileNumber}`;
+      if (formattedMobile !== supermarket.admin.mobileNumber) {
+        const existingMobile = await Supermarket.findOne({
+          'admin.mobileNumber': formattedMobile,
+          _id: { $ne: supermarketId }
+        });
+        if (existingMobile) {
+          return res.status(400).json({ message: 'Mobile number is already registered' });
+        }
+        updateData['admin.mobileNumber'] = formattedMobile;
+      }
     }
 
     // Handle logo upload if provided

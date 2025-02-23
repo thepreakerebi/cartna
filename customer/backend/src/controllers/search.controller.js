@@ -1,4 +1,3 @@
-const natural = require('natural');
 const nlp = require('compromise');
 const Product = require('../../../../supermarket/backend/src/models/product.model');
 
@@ -101,6 +100,28 @@ exports.searchProducts = async (req, res) => {
             { $unwind: '$branch' },
             { $sort: { unitPrice: 1 } },
             {
+                $lookup: {
+                    from: 'supermarkets',
+                    localField: 'supermarketId',
+                    foreignField: '_id',
+                    as: 'supermarket'
+                }
+            },
+            { $unwind: '$supermarket' },
+            {
+                $group: {
+                    _id: {
+                        supermarketId: '$supermarketId',
+                        productName: '$productName',
+                        unitPrice: '$unitPrice'
+                    },
+                    doc: { $first: '$$ROOT' }
+                }
+            },
+            {
+                $replaceRoot: { newRoot: '$doc' }
+            },
+            {
                 $project: {
                     productName: 1,
                     unitPrice: 1,
@@ -108,6 +129,7 @@ exports.searchProducts = async (req, res) => {
                     'category.categoryName': 1,
                     'branch.name': 1,
                     'branch.location': 1,
+                    'supermarket.supermarketName': 1,
                     images: 1,
                     stock: 1,
                     score: { $meta: "searchScore" }
@@ -126,6 +148,7 @@ exports.searchProducts = async (req, res) => {
                 price: product.unitPrice,
                 description: product.description,
                 category: product.category.categoryName,
+                supermarket: product.supermarket.supermarketName,
                 branch: {
                     name: product.branch.name,
                     location: product.branch.location

@@ -2,12 +2,16 @@ const mongoose = require('mongoose');
 const Joi = require('joi');
 
 const productSchema = new mongoose.Schema({
-  name: {
+  productName: {
     type: String,
     required: [true, 'Product name is required'],
     trim: true,
     minlength: 2,
-    maxlength: 100
+    maxlength: 100,
+    set: function(value) {
+      if (!value) return value;
+      return value.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+    }
   },
   description: {
     type: String,
@@ -49,6 +53,11 @@ const productSchema = new mongoose.Schema({
     ref: 'Branch',
     required: true
   },
+  supermarketId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Supermarket',
+    required: true
+  },
   active: {
     type: Boolean,
     default: true
@@ -61,12 +70,20 @@ const productSchema = new mongoose.Schema({
   brand: {
     type: String,
     trim: true,
-    maxlength: 100
+    maxlength: 100,
+    set: function(value) {
+      if (!value) return value;
+      return value.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+    }
   },
   supplierName: {
     type: String,
     trim: true,
-    maxlength: 100
+    maxlength: 100,
+    set: function(value) {
+      if (!value) return value;
+      return value.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+    }
   },
   supplierCode: {
     type: String,
@@ -123,7 +140,7 @@ const productSchema = new mongoose.Schema({
 // Validation schema
 const validateProduct = (product, isUpdate = false) => {
   const schema = Joi.object({
-    name: isUpdate ? Joi.string().min(2).max(100).optional() : Joi.string().min(2).max(100).required(),
+    productName: isUpdate ? Joi.string().min(2).max(100).optional() : Joi.string().min(2).max(100).required(),
     description: Joi.string().max(1000).optional(),
     images: isUpdate ? Joi.array().items(Joi.string()).min(1).max(5).optional() : Joi.array().items(Joi.string()).min(1).max(5).required(),
     quantity: isUpdate ? Joi.number().min(0).optional() : Joi.number().min(0).required(),

@@ -1,7 +1,6 @@
 const Product = require('../models/product.model');
 const { validateProduct } = require('../models/product.model');
 const cloudinary = require('cloudinary').v2;
-const { getActiveSKUFormat } = require('../controllers/sku.format.controller');
 const mongoose = require('mongoose');
 
 // Configure Cloudinary
@@ -45,7 +44,7 @@ const generateSKU = async (productData, branchId) => {
     const skuComponents = skuFormat.format.map((component) => {
       switch (component) {
         case 'CATEGORY':
-          return category ? category.name.substring(0, 3).toUpperCase() : 'XXX';
+          return category ? category.categoryName.substring(0, 3).toUpperCase() : 'XXX';
         case 'BRAND':
           return productData.brand ? productData.brand.substring(0, 3).toUpperCase() : 'XXX';
         case 'SUPPLIER NAME':
@@ -117,16 +116,16 @@ exports.createProduct = async (req, res) => {
     // Get product data from form fields
     const productData = req.body;
 
-    // Capitalize product name if provided
-    if (productData.name) {
-      productData.name = productData.name.charAt(0).toUpperCase() + productData.name.slice(1);
-
-      // Check if product with same name already exists
-      const existingProduct = await Product.findOne({ name: productData.name });
+    // Check if product with same name already exists in the same branch
+    if (productData.productName) {
+      const existingProduct = await Product.findOne({
+        productName: productData.productName,
+        createdBy: req.user.branchId
+      });
       if (existingProduct) {
         return res.status(400).json({
           success: false,
-          message: 'A product with this name already exists'
+          message: 'A product with this name already exists in your branch'
         });
       }
     }
@@ -158,11 +157,11 @@ exports.createProduct = async (req, res) => {
     // Add image URLs to product data
     productData.images = imageUrls;
 
-    // Ensure name is provided
-    if (!productData.name) {
+    // Ensure productName is provided
+    if (!productData.productName) {
       return res.status(400).json({
         success: false,
-        message: '"name" is required'
+        message: '"productName" is required'
       });
     }
 
@@ -203,10 +202,20 @@ exports.createProduct = async (req, res) => {
     // Generate SKU for the new product
     const sku = await generateSKU(productData, req.user.branchId);
 
+    // Get the branch's supermarket ID
+    const branch = await mongoose.model('Branch').findById(req.user.branchId);
+    if (!branch) {
+      return res.status(404).json({
+        success: false,
+        message: 'Branch not found'
+      });
+    }
+
     const product = new Product({
       ...productData,
       images: imageUrls,
       createdBy: req.user.branchId,
+      supermarketId: branch.createdBy,
       sku
     });
 
@@ -322,19 +331,17 @@ exports.updateProduct = async (req, res) => {
     // Initialize update data with existing product data
     const productData = { ...req.body };
 
-    // Handle product name capitalization and uniqueness check
-    if (productData.name) {
-      productData.name = productData.name.charAt(0).toUpperCase() + productData.name.slice(1);
-
-      // Check if another product with the same name exists (excluding current product)
+    // Check if another product with the same name exists in the same branch (excluding current product)
+    if (productData.productName) {
       const existingProduct = await Product.findOne({
-        name: productData.name,
+        productName: productData.productName,
+        createdBy: req.user.branchId,
         _id: { $ne: req.params.id }
       });
       if (existingProduct) {
         return res.status(400).json({
           success: false,
-          message: 'A product with this name already exists'
+          message: 'A product with this name already exists in your branch'
         });
       }
     }

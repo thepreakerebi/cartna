@@ -123,20 +123,34 @@ exports.getCategory = async (req, res) => {
       });
     }
 
-    // Get the branch to determine supermarket ID
-    const branch = await Branch.findById(req.user.branchId);
-    if (!branch) {
-      return res.status(404).json({
-        success: false,
-        message: 'Branch not found'
-      });
-    }
-
-    // Check if user has access to this category
-    if (category.supermarketId.toString() !== branch.createdBy.toString()) {
+    // Check authorization based on user role
+    if (req.user.role === 'branch_manager') {
+      // For branch manager, get their branch to determine supermarket ID
+      const branch = await Branch.findById(req.user.branchId);
+      if (!branch) {
+        return res.status(404).json({
+          success: false,
+          message: 'Branch not found'
+        });
+      }
+      if (category.supermarketId.toString() !== branch.createdBy.toString()) {
+        return res.status(403).json({
+          success: false,
+          message: 'Not authorized to view this category'
+        });
+      }
+    } else if (req.admin && req.admin.id) {
+      // For supermarket admin, check if category belongs to their supermarket
+      if (category.supermarketId.toString() !== req.admin.id) {
+        return res.status(403).json({
+          success: false,
+          message: 'Not authorized to view this category'
+        });
+      }
+    } else {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to view this category'
+        message: 'Not authorized to view categories'
       });
     }
 
@@ -155,7 +169,6 @@ exports.getCategory = async (req, res) => {
 // Update a category (Admin and Branch Manager)
 exports.updateCategory = async (req, res) => {
   try {
-    // Ensure the user is either an admin or the branch manager who created the category
     const category = await Category.findById(req.params.id);
     if (!category) {
       return res.status(404).json({
@@ -164,15 +177,46 @@ exports.updateCategory = async (req, res) => {
       });
     }
 
+    // Check authorization based on user role
+    if (req.user.role === 'branch_manager') {
+      // For branch manager, verify they belong to the same supermarket
+      const branch = await Branch.findById(req.user.branchId);
+      if (!branch) {
+        return res.status(404).json({
+          success: false,
+          message: 'Branch not found'
+        });
+      }
+      if (category.supermarketId.toString() !== branch.createdBy.toString()) {
+        return res.status(403).json({
+          success: false,
+          message: 'Not authorized to update this category'
+        });
+      }
+    } else if (req.admin && req.admin.id) {
+      // For supermarket admin, verify the category belongs to their supermarket
+      if (category.supermarketId.toString() !== req.admin.id) {
+        return res.status(403).json({
+          success: false,
+          message: 'Not authorized to update this category'
+        });
+      }
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update categories'
+      });
+    }
+
     // If name is being updated, check for duplicates
     if (req.body.categoryName && req.body.categoryName !== category.categoryName) {
-      // Capitalize the new name before checking for duplicates
       const capitalizedName = req.body.categoryName.charAt(0).toUpperCase() + req.body.categoryName.slice(1);
       req.body.categoryName = capitalizedName;
       
       const existingCategory = await Category.findOne({
         categoryName: capitalizedName,
-        supermarketId: category.supermarketId
+        supermarketId: category.supermarketId,
+        _id: { $ne: req.params.id }
       });
       if (existingCategory) {
         return res.status(400).json({
@@ -180,15 +224,6 @@ exports.updateCategory = async (req, res) => {
           message: 'A category with this name already exists'
         });
       }
-    }
-
-    if (req.user.role !== 'admin' && 
-        (req.user.role === 'branch_manager' && 
-        category.createdBy.toString() !== req.user.branchId)) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to update this category'
-      });
     }
 
     const { error } = validateCategory(req.body, true);
@@ -203,7 +238,7 @@ exports.updateCategory = async (req, res) => {
       req.params.id,
       req.body,
       { new: true, runValidators: true }
-    ).populate('createdBy', 'name');
+    ).populate('createdBy', 'branchName');
 
     res.status(200).json({
       success: true,
@@ -220,7 +255,6 @@ exports.updateCategory = async (req, res) => {
 // Delete a category (Admin and Branch Manager)
 exports.deleteCategory = async (req, res) => {
   try {
-    // Ensure the user is either an admin or the branch manager who created the category
     const category = await Category.findById(req.params.id);
     if (!category) {
       return res.status(404).json({
@@ -229,12 +263,34 @@ exports.deleteCategory = async (req, res) => {
       });
     }
 
-    if (req.user.role !== 'admin' && 
-        (req.user.role === 'branch_manager' && 
-        category.createdBy.toString() !== req.user.branchId)) {
+    // Check authorization based on user role
+    if (req.user.role === 'branch_manager') {
+      // For branch manager, verify they belong to the same supermarket
+      const branch = await Branch.findById(req.user.branchId);
+      if (!branch) {
+        return res.status(404).json({
+          success: false,
+          message: 'Branch not found'
+        });
+      }
+      if (category.supermarketId.toString() !== branch.createdBy.toString()) {
+        return res.status(403).json({
+          success: false,
+          message: 'Not authorized to delete this category'
+        });
+      }
+    } else if (req.admin && req.admin.id) {
+      // For supermarket admin, verify the category belongs to their supermarket
+      if (category.supermarketId.toString() !== req.admin.id) {
+        return res.status(403).json({
+          success: false,
+          message: 'Not authorized to delete this category'
+        });
+      }
+    } else {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to delete this category'
+        message: 'Not authorized to delete categories'
       });
     }
 

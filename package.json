@@ -4,15 +4,18 @@
   "private": true,
   "workspaces": [
     "supermarket/backend",
-    "supermarket/frontend"
+    "supermarket/frontend",
+    "customer/backend"
   ],
   "scripts": {
     "dev:backend": "npm run dev -w @lemoncart/backend",
     "dev:frontend": "npm run dev -w @lemoncart/frontend",
+    "dev:customer": "npm run dev -w @cartna/customer-backend",
     "build:backend": "npm run build -w @lemoncart/backend",
     "build:frontend": "npm run build -w @lemoncart/frontend",
     "start:backend": "npm run start -w @lemoncart/backend",
-    "start:frontend": "npm run start -w @lemoncart/frontend"
+    "start:frontend": "npm run start -w @lemoncart/frontend",
+    "start:customer": "npm run start -w @cartna/customer-backend"
   },
   "devDependencies": {
     "@types/validator": "^13.12.2"

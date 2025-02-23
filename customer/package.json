@@ -1,0 +1,16 @@
+{
+  "name": "customer",
+  "version": "1.0.0",
+  "description": "Customer module for Cartna application",
+  "main": "index.js",
+  "scripts": {
+    "start": "echo \"Please cd into backend or frontend directory\" && exit 1",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "cartna",
+    "customer"
+  ],
+  "author": "",
+  "license": "ISC"
+}

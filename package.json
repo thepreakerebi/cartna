@@ -8,9 +8,9 @@
     "customer/backend"
   ],
   "scripts": {
-    "dev:backend": "npm run dev -w @lemoncart/backend",
-    "dev:frontend": "npm run dev -w @lemoncart/frontend",
-    "dev:customer": "npm run dev -w @cartna/customer-backend",
+    "dev:supermarket-backend": "npm run dev -w @lemoncart/backend",
+    "dev:supermarket-frontend": "npm run dev -w @lemoncart/frontend",
+    "dev:customer-backend": "npm run dev -w @cartna/customer-backend",
     "build:backend": "npm run build -w @lemoncart/backend",
     "build:frontend": "npm run build -w @lemoncart/frontend",
     "start:backend": "npm run start -w @lemoncart/backend",

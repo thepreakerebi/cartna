@@ -1,10 +1,7 @@
 const natural = require('natural');
 const nlp = require('compromise');
-const mongoose = require('mongoose');
 const Product = require('../../../../supermarket/backend/src/models/product.model');
 
-const tokenizer = new natural.WordTokenizer();
-const stemmer = natural.PorterStemmer;
 
 // Helper function to extract price constraints
 const extractPriceConstraints = (query) => {
@@ -24,9 +21,19 @@ exports.searchProducts = async (req, res) => {
         const { query } = req.body;
         const { maxPrice } = extractPriceConstraints(query);
         
-        // Process natural language query
+        // Process natural language query and remove stop words
         const doc = nlp(query);
-        const searchTerms = doc.terms().out('array');
+        const stopWords = ['i', 'want', 'need', 'looking', 'for', 'the', 'a', 'an', 'and', 'or'];
+        const searchTerms = doc.terms().out('array')
+            .map(term => term.toLowerCase())
+            .filter(term => !stopWords.includes(term));
+
+        if (searchTerms.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide a valid search term'
+            });
+        }
         
         // Create Atlas Search aggregation pipeline
         const pipeline = [
@@ -40,7 +47,8 @@ exports.searchProducts = async (req, res) => {
                                     query: searchTerms.join(" "),
                                     path: ["productName", "description"],
                                     fuzzy: {
-                                        maxEdits: 1
+                                        maxEdits: 1,
+                                        prefixLength: 2
                                     }
                                 }
                             }
@@ -60,7 +68,17 @@ exports.searchProducts = async (req, res) => {
             {
                 $match: {
                     active: true,
-                    unitPrice: { $lte: maxPrice }
+                    unitPrice: { $lte: maxPrice || Infinity }
+                }
+            },
+            {
+                $addFields: {
+                    score: { $meta: "searchScore" }
+                }
+            },
+            {
+                $match: {
+                    score: { $gt: 0.5 }
                 }
             },
             {
@@ -99,20 +117,23 @@ exports.searchProducts = async (req, res) => {
 
         const products = await Product.aggregate(pipeline);
 
-        const formattedResults = products.map(product => ({
-            id: product._id,
-            name: product.productName,
-            price: product.unitPrice,
-            description: product.description,
-            category: product.category.categoryName,
-            branch: {
-                name: product.branch.name,
-                location: product.branch.location
-            },
-            images: product.images,
-            stock: product.stock,
-            relevanceScore: product.score
-        }));
+        // Sort by relevance score first, then by price
+        const formattedResults = products
+            .sort((a, b) => b.score - a.score || a.unitPrice - b.unitPrice)
+            .map(product => ({
+                id: product._id,
+                name: product.productName,
+                price: product.unitPrice,
+                description: product.description,
+                category: product.category.categoryName,
+                branch: {
+                    name: product.branch.name,
+                    location: product.branch.location
+                },
+                images: product.images,
+                stock: product.stock,
+                relevanceScore: product.score
+            }));
 
         res.json({
             success: true,

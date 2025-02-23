@@ -72,13 +72,30 @@ exports.getAllCategories = async (req, res) => {
   try {
     let query = { active: true };
     
-    // If branch manager, only show their categories
     if (req.user.role === 'branch_manager') {
-      query.createdBy = req.user.branchId;
+      // For branch manager, get their branch to determine supermarket ID
+      const branch = await Branch.findById(req.user.branchId);
+      if (!branch) {
+        return res.status(404).json({
+          success: false,
+          message: 'Branch not found'
+        });
+      }
+      query.supermarketId = branch.createdBy;
+    } else if (req.admin && req.admin.id) {
+      // For supermarket admin, filter by their ID as supermarketId
+      query.supermarketId = req.admin.id;
+    } else {
+      // For other users, return unauthorized
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to view categories'
+      });
     }
 
+    // Filter categories based on query
     const categories = await Category.find(query)
-      .populate('createdBy', 'name')
+      .populate('createdBy', 'branchName')
       .sort('-createdAt');
 
     res.status(200).json({
@@ -97,12 +114,29 @@ exports.getAllCategories = async (req, res) => {
 exports.getCategory = async (req, res) => {
   try {
     const category = await Category.findById(req.params.id)
-      .populate('createdBy', 'name');
+      .populate('createdBy', 'branchName');
 
     if (!category) {
       return res.status(404).json({
         success: false,
         message: 'Category not found'
+      });
+    }
+
+    // Get the branch to determine supermarket ID
+    const branch = await Branch.findById(req.user.branchId);
+    if (!branch) {
+      return res.status(404).json({
+        success: false,
+        message: 'Branch not found'
+      });
+    }
+
+    // Check if user has access to this category
+    if (category.supermarketId.toString() !== branch.createdBy.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to view this category'
       });
     }
 

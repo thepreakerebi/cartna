@@ -104,11 +104,15 @@ exports.supermarketLogin = async (req, res) => {
       return res.status(400).json({ message: 'Email/mobile number and password are required' });
     }
 
-    // Find supermarket by admin email or mobile
+    // Format mobile number with +250 prefix if provided
+    const formattedMobile = mobileNumber ? 
+      (mobileNumber.startsWith('+250') ? mobileNumber : `+250${mobileNumber}`) : '';
+
+    // Find supermarket by admin email or formatted mobile
     const supermarket = await Supermarket.findOne({
       $or: [
         { 'admin.email': email || '' },
-        { 'admin.mobileNumber': mobileNumber || '' }
+        { 'admin.mobileNumber': formattedMobile }
       ]
     });
 
@@ -142,7 +146,7 @@ exports.supermarketLogin = async (req, res) => {
           firstName: supermarket.admin.firstName,
           lastName: supermarket.admin.lastName,
           email: supermarket.admin.email,
-          phone: supermarket.admin.phone
+          mobileNumber: supermarket.admin.mobileNumber
         }
       }
     });

@@ -44,7 +44,7 @@ exports.searchProducts = async (req, res) => {
                             {
                                 text: {
                                     query: searchTerms.join(" "),
-                                    path: ["productName", "description"],
+                                    path: ["productName", "description", "brand"],
                                     fuzzy: {
                                         maxEdits: 1,
                                         prefixLength: 2
@@ -58,6 +58,13 @@ exports.searchProducts = async (req, res) => {
                                     query: searchTerms.join(" "),
                                     path: "productName",
                                     score: { boost: { value: 2 } }
+                                }
+                            },
+                            {
+                                text: {
+                                    query: searchTerms.join(" "),
+                                    path: "brand",
+                                    score: { boost: { value: 1.5 } }
                                 }
                             }
                         ]
@@ -126,6 +133,7 @@ exports.searchProducts = async (req, res) => {
                     productName: 1,
                     unitPrice: 1,
                     description: 1,
+                    brand: 1,
                     'category.categoryName': 1,
                     'branch.name': 1,
                     'branch.location': 1,
@@ -147,6 +155,7 @@ exports.searchProducts = async (req, res) => {
                 name: product.productName,
                 price: product.unitPrice,
                 description: product.description,
+                brand: product.brand,
                 category: product.category.categoryName,
                 supermarket: product.supermarket.supermarketName,
                 branch: {

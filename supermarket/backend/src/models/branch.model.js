@@ -1,30 +1,46 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
+// Helper function to capitalize words
+const capitalizeWords = (str) => {
+  return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+};
+
 const branchSchema = new mongoose.Schema({
   manager: {
     firstName: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
+      set: capitalizeWords
     },
     lastName: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
+      set: capitalizeWords
     },
-    phoneNumber: {
+    mobileNumber: {
       type: String,
       required: true,
-      trim: true
-    },
-    phoneVerified: {
-      type: Boolean,
-      default: false
-    },
-    verificationRequestId: {
-      type: String,
-      default: null
+      trim: true,
+      unique: true,
+      validate: {
+        validator: function(v) {
+          // Remove the +250 prefix if it exists before validation
+          const numberToValidate = v.startsWith('+250') ? v.slice(4) : v;
+          const cleaned = numberToValidate.replace(/\D/g, '');
+          return cleaned && cleaned.length === 9;
+        },
+        message: props => `${props.value} is not a valid mobile number. Please enter 9 digits`
+      },
+      set: function(v) {
+        if (!v) return v;
+        // Remove any non-digit characters and existing prefix
+        const cleaned = v.replace(/\D/g, '').slice(-9);
+        // Only add prefix if we have exactly 9 digits
+        return cleaned.length === 9 ? `+250${cleaned}` : v;
+      }
     },
     email: {
       type: String,
@@ -47,10 +63,11 @@ const branchSchema = new mongoose.Schema({
       default: null
     }
   },
-  name: {
+  branchName: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    set: capitalizeWords
   },
   location: {
     placeId: {
@@ -75,7 +92,7 @@ const branchSchema = new mongoose.Schema({
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Admin',
+    ref: 'Supermarket',
     required: true
   },
   active: {
@@ -90,7 +107,7 @@ const branchSchema = new mongoose.Schema({
 branchSchema.index({ 'location.coordinates': '2dsphere' });
 
 // Create a compound index for name and createdBy to ensure uniqueness within a supermarket
-branchSchema.index({ name: 1, createdBy: 1 }, { unique: true });
+branchSchema.index({ branchName: 1, createdBy: 1 }, { unique: true });
 
 // Hash manager's password before saving
 branchSchema.pre('save', async function(next) {

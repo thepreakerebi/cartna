@@ -6,9 +6,9 @@ const {
   getAllBranches,
   getBranch,
   updateBranch,
-  deleteBranch
+  deleteBranch,
+  login
 } = require('../controllers/branch.controller');
-const { login } = require('../controllers/branch.manager.controller');
 
 // Branch manager login route (unprotected)
 router.post('/login', login);

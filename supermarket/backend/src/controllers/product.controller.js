@@ -129,6 +129,29 @@ exports.createProduct = async (req, res) => {
         });
       }
     }
+
+    // Get the branch's supermarket ID
+    const branch = await mongoose.model('Branch').findById(req.user.branchId);
+    if (!branch) {
+      return res.status(404).json({
+        success: false,
+        message: 'Branch not found'
+      });
+    }
+
+    // Validate that the category exists and belongs to the branch manager's supermarket
+    if (productData.category) {
+      const category = await mongoose.model('Category').findOne({
+        _id: productData.category,
+        supermarketId: branch.createdBy
+      });
+      if (!category) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid category. The category must belong to your supermarket'
+        });
+      }
+    }
     
     // Get uploaded files
     const files = req.files;
@@ -202,15 +225,6 @@ exports.createProduct = async (req, res) => {
     // Generate SKU for the new product
     const sku = await generateSKU(productData, req.user.branchId);
 
-    // Get the branch's supermarket ID
-    const branch = await mongoose.model('Branch').findById(req.user.branchId);
-    if (!branch) {
-      return res.status(404).json({
-        success: false,
-        message: 'Branch not found'
-      });
-    }
-
     const product = new Product({
       ...productData,
       images: imageUrls,
@@ -245,7 +259,7 @@ exports.createProduct = async (req, res) => {
   }
 };
 
-// Get all products (Admin gets all, Branch Manager gets only their products)
+// Get all products (Supermarket Admin gets their supermarket's products, Branch Manager gets only their products)
 exports.getAllProducts = async (req, res) => {
   try {
     let query = { active: true };
@@ -253,6 +267,14 @@ exports.getAllProducts = async (req, res) => {
     // If branch manager, only show their products
     if (req.user.role === 'branch_manager') {
       query.createdBy = req.user.branchId;
+    } else if (req.admin && req.admin.id) {
+      // For supermarket admin, only show products from their supermarket
+      query.supermarketId = req.admin.id;
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to view products'
+      });
     }
 
     const products = await Product.find(query)

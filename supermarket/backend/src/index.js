@@ -4,7 +4,7 @@ const helmet = require('helmet');
 const compression = require('compression');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
-const adminRoutes = require('./routes/admin.routes');
+const supermarketRoutes = require('./routes/supermarket.routes');
 const branchRoutes = require('./routes/branch.routes');
 const categoryRoutes = require('./routes/category.routes');
 const productRoutes = require('./routes/product.routes');
@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use('/api/admin', adminRoutes);
+app.use('/api/supermarkets', supermarketRoutes);
 app.use('/api/branches', branchRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);

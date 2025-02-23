@@ -17,7 +17,7 @@ exports.resetSKUFormat = async (req, res) => {
         format: DEFAULT_FORMAT,
         separator: DEFAULT_SEPARATOR,
         active: true,
-        createdBy: req.user.id
+        createdBy: req.admin.id
       });
     } else {
       // Reset existing format to default configuration
@@ -48,7 +48,7 @@ exports.getActiveSKUFormat = async (req, res) => {
     // If no active format exists, create the default format
     if (!skuFormat) {
       // For branch managers, use their branch's admin as the creator
-      const creatorId = req.user.role === 'branch_manager' ? req.user.adminId : req.user.id;
+      const creatorId = req.user.role === 'branch_manager' ? req.admin.id : req.admin.id;
       
       skuFormat = new SKUFormat({
         format: DEFAULT_FORMAT,
@@ -112,7 +112,7 @@ exports.updateSKUFormat = async (req, res) => {
         format: uppercaseFormat,
         separator: separator || DEFAULT_SEPARATOR,
         active: true,
-        createdBy: req.user.id
+        createdBy: req.admin.id
       });
     } else {
       // Update existing format

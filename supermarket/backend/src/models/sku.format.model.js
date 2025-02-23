@@ -16,7 +16,7 @@ const skuFormatSchema = new mongoose.Schema({
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Admin',
+    ref: 'Supermarket',
     required: true
   }
 }, {

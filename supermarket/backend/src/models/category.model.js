@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Joi = require('joi');
 
 const categorySchema = new mongoose.Schema({
-  name: {
+  categoryName: {
     type: String,
     required: [true, 'Category name is required'],
     trim: true,
@@ -25,7 +25,7 @@ const categorySchema = new mongoose.Schema({
   },
   supermarketId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Admin',
+    ref: 'Supermarket',
     required: true
   },
   active: {
@@ -37,12 +37,12 @@ const categorySchema = new mongoose.Schema({
 });
 
 // Updated compound index to use supermarketId instead of createdBy
-categorySchema.index({ name: 1, supermarketId: 1 }, { unique: true });
+categorySchema.index({ categoryName: 1, supermarketId: 1 }, { unique: true });
 
 // Validation schema
 const validateCategory = (category, isUpdate = false) => {
   const schema = Joi.object({
-    name: isUpdate ? Joi.string().min(2).max(50).optional() : Joi.string().min(2).max(50).required(),
+    categoryName: isUpdate ? Joi.string().min(2).max(50).optional() : Joi.string().min(2).max(50).required(),
     description: Joi.string().max(500).optional(),
     active: Joi.boolean().optional()
   });

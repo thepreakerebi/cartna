@@ -22,8 +22,8 @@ exports.createCategory = async (req, res) => {
     }
 
     // Capitalize the category name before checking for duplicates
-    const capitalizedName = req.body.name.charAt(0).toUpperCase() + req.body.name.slice(1);
-    req.body.name = capitalizedName;
+    const capitalizedName = req.body.categoryName.charAt(0).toUpperCase() + req.body.categoryName.slice(1);
+    req.body.categoryName = capitalizedName;
 
     // Get the branch's supermarket ID
     const branch = await Branch.findById(req.user.branchId);
@@ -36,10 +36,8 @@ exports.createCategory = async (req, res) => {
 
     // Check if category with same name already exists in the same supermarket
     const existingCategory = await Category.findOne({
-      name: capitalizedName,
-      $or: [
-        { createdBy: { $in: await Branch.find({ createdBy: branch.createdBy }).distinct('_id') } }
-      ]
+      categoryName: capitalizedName,
+      supermarketId: branch.createdBy
     });
     if (existingCategory) {
       return res.status(400).json({
@@ -50,7 +48,8 @@ exports.createCategory = async (req, res) => {
 
     const category = new Category({
       ...req.body,
-      createdBy: req.user.branchId
+      createdBy: req.user.branchId,
+      supermarketId: branch.createdBy
     });
 
     await category.save();
@@ -132,12 +131,15 @@ exports.updateCategory = async (req, res) => {
     }
 
     // If name is being updated, check for duplicates
-    if (req.body.name && req.body.name !== category.name) {
+    if (req.body.categoryName && req.body.categoryName !== category.categoryName) {
       // Capitalize the new name before checking for duplicates
-      const capitalizedName = req.body.name.charAt(0).toUpperCase() + req.body.name.slice(1);
-      req.body.name = capitalizedName;
+      const capitalizedName = req.body.categoryName.charAt(0).toUpperCase() + req.body.categoryName.slice(1);
+      req.body.categoryName = capitalizedName;
       
-      const existingCategory = await Category.findOne({ name: capitalizedName });
+      const existingCategory = await Category.findOne({
+        categoryName: capitalizedName,
+        supermarketId: category.supermarketId
+      });
       if (existingCategory) {
         return res.status(400).json({
           success: false,

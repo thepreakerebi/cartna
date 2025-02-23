@@ -315,7 +315,16 @@ exports.updateBranch = async (req, res) => {
 // Delete branch
 exports.deleteBranch = async (req, res) => {
   try {
-    const branch = await Branch.findOne({
+    // Ensure the user is an admin
+    if (!req.admin || !req.admin.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only administrator can delete branches'
+      });
+    }
+
+    // Find and delete the branch
+    const branch = await Branch.findOneAndDelete({
       _id: req.params.id,
       createdBy: req.admin.id
     });
@@ -323,15 +332,13 @@ exports.deleteBranch = async (req, res) => {
     if (!branch) {
       return res.status(404).json({
         success: false,
-        message: 'Branch not found'
+        message: 'Branch not found or not authorized to delete this branch'
       });
     }
 
-    await branch.remove();
-
     res.status(200).json({
       success: true,
-      message: 'Branch deleted successfully'
+      message: '1 branch deleted'
     });
   } catch (error) {
     res.status(500).json({

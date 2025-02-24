@@ -12,7 +12,7 @@
     "dev:supermarket-backend": "npm run dev -w @cartna/supermarket-backend",
     "dev:supermarket-frontend": "npm run dev -w @cartna/supermarket-frontend",
     "dev:customer-backend": "npm run dev -w @cartna/customer-backend",
-    "start:customer-frontend": "npm start -w @cartna/customer-frontend",
+    "dev:customer-frontend": "npm run dev -w @cartna/customer-frontend",
     "build:backend": "npm run build -w @cartna/supermarket-backend",
     "build:frontend": "npm run build -w @cartna/supermarket-frontend",
     "start:backend": "npm run start -w @cartna/supermarket-backend",

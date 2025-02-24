@@ -103,8 +103,45 @@
 .profileSection {
   max-width: var(--max-width);
   margin: 0 auto;
+  padding: var(--space-xl);
+  text-align: center;
 }
 
+.queryPrompt h2 {
+  font-size: var(--font-2xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-xl);
+}
+
+.exampleQueries {
+  margin-top: var(--space-2xl);
+}
+
+.exampleQueries h3 {
+  font-size: var(--font-lg);
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-md);
+}
+
+.exampleQueries ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.exampleQueries li {
+  font-size: var(--font-md);
+  color: var(--text-secondary);
+  padding: var(--space-sm);
+  background-color: var(--hover);
+  border-radius: var(--radius-md);
+  display: inline-block;
+  margin: 0 auto;
+}
 .profileInfo {
   margin-top: var(--space-md);
 }

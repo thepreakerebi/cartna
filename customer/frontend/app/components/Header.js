@@ -1,36 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, ShoppingCart } from 'lucide-react';
 import useAuthStore from '@/store/auth';
+import { useCart } from '@/store/cartContext';
 import styles from './Header.module.css';
 
 export default function Header() {
   const router = useRouter();
   const { customer, clearAuth } = useAuthStore();
+  const { cartItems } = useCart();
   const [showPopover, setShowPopover] = useState(false);
-  const [cartItemCount, setCartItemCount] = useState(0);
-
-  useEffect(() => {
-    const fetchCartItems = async () => {
-      try {
-        const response = await fetch('/api/cart', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        const data = await response.json();
-        if (data.status === 'success') {
-          setCartItemCount(data.data.items.length);
-        }
-      } catch (error) {
-        console.error('Error fetching cart:', error);
-      }
-    };
-
-    fetchCartItems();
-  }, []);
 
   const handleLogout = () => {
     clearAuth();
@@ -44,8 +25,8 @@ export default function Header() {
           <h1 className={styles.brandName}>Cartna</h1>
           <button className={styles.cartButton} aria-label="Shopping cart">
             <ShoppingCart size={24} />
-            {cartItemCount > 0 && (
-              <span className={styles.cartBadge}>{cartItemCount}</span>
+            {cartItems.length > 0 && (
+              <span className={styles.cartBadge}>{cartItems.length}</span>
             )}
           </button>
         </div>

@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import useAuthStore from '@/store/auth';
 import Header from '@/app/components/Header';
+import QuerySection from '@/app/components/QuerySection';
+import InputSection from '@/app/components/InputSection';
 import styles from './page.module.css';
 
 export default function HomePage() {
@@ -24,14 +26,9 @@ export default function HomePage() {
     <div className={styles.container}>
       <Header />
       <main className={styles.main}>
-        <section className={styles.profileSection}>
-          <h2>Your Profile</h2>
-          <div className={styles.profileInfo}>
-            <p><strong>Name:</strong> {customer.firstName} {customer.lastName}</p>
-            <p><strong>Mobile:</strong> {customer.mobileNumber}</p>
-          </div>
-        </section>
+        <QuerySection />
       </main>
+      <InputSection />
     </div>
   );
 }

@@ -1,0 +1,104 @@
+.inputSection {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--space-md);
+  background-color: var(--background);
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: var(--space-md);
+  z-index: 10;
+}
+
+.inputContainer {
+  flex: 1;
+  position: relative;
+}
+
+.input {
+  width: 100%;
+  padding: var(--space-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-md);
+  background-color: var(--background);
+  color: var(--text-primary);
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.input:disabled {
+  background-color: var(--hover);
+  cursor: not-allowed;
+}
+
+.recordingUI {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--hover);
+  border-radius: var(--radius-md);
+}
+
+.recordingIndicator {
+  color: var(--primary);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.actionsContainer {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.actionButton {
+  padding: var(--space-md);
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.actionButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.micButton:hover {
+  background-color: var(--hover);
+}
+
+.cancelButton {
+  color: var(--error);
+}
+
+.cancelButton:hover {
+  background-color: var(--error-light);
+}
+
+.submitButton {
+  background-color: var(--primary);
+  color: var(--text-primary);
+}
+
+.submitButton:hover:not(:disabled) {
+  background-color: var(--primary-dark);
+}

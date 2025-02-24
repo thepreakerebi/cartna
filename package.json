@@ -1,20 +1,22 @@
 {
-  "name": "lemoncart",
+  "name": "cartna",
   "version": "1.0.0",
   "private": true,
   "workspaces": [
     "supermarket/backend",
     "supermarket/frontend",
-    "customer/backend"
+    "customer/backend",
+    "customer/frontend"
   ],
   "scripts": {
-    "dev:supermarket-backend": "npm run dev -w @lemoncart/backend",
-    "dev:supermarket-frontend": "npm run dev -w @lemoncart/frontend",
+    "dev:supermarket-backend": "npm run dev -w @cartna/supermarket-backend",
+    "dev:supermarket-frontend": "npm run dev -w @cartna/supermarket-frontend",
     "dev:customer-backend": "npm run dev -w @cartna/customer-backend",
-    "build:backend": "npm run build -w @lemoncart/backend",
-    "build:frontend": "npm run build -w @lemoncart/frontend",
-    "start:backend": "npm run start -w @lemoncart/backend",
-    "start:frontend": "npm run start -w @lemoncart/frontend",
+    "start:customer-frontend": "npm start -w @cartna/customer-frontend",
+    "build:backend": "npm run build -w @cartna/supermarket-backend",
+    "build:frontend": "npm run build -w @cartna/supermarket-frontend",
+    "start:backend": "npm run start -w @cartna/supermarket-backend",
+    "start:frontend": "npm run start -w @cartna/supermarket-frontend",
     "start:customer": "npm run start -w @cartna/customer-backend"
   },
   "devDependencies": {

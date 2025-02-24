@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+:root {
+  /* Colors */
+  --color-primary: #F4D03F; /* Lemon yellow */
+  --color-primary-light: #F7DC6F;
+  --color-primary-dark: #D4B92E;
+  --color-secondary: #2C3E50;
+  --color-text: #333333;
+  --color-text-light: #666666;
+  --color-background: #FFFFFF;
+  --color-border: #E5E5E5;
+  --color-error: #E74C3C;
+  --color-success: #2ECC71;
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-xxl: 3rem;
+
+  /* Font Family */
+  --font-primary: 'Inter', sans-serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+

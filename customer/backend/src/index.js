@@ -6,6 +6,7 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const customerRoutes = require('./routes/customer.routes');
 const searchRoutes = require('./routes/search.routes');
+const cartRoutes = require('./routes/cart.routes');
 
 // Load environment variables
 dotenv.config();
@@ -22,6 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/customers', customerRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/cart', cartRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

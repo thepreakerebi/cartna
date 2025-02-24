@@ -1,34 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import useAuthStore from '@/store/auth';
 import api from '@/lib/api';
 
-export default function LoginPage() {
+export default function CreateAccountPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const setAuth = useAuthStore((state) => state.setAuth);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
     mobileNumber: '',
     password: ''
   });
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-
-  useEffect(() => {
-    const message = searchParams.get('message');
-    if (message) {
-      setSuccessMessage(message);
-      setTimeout(() => {
-        setSuccessMessage('');
-      }, 5000);
-    }
-  }, [searchParams]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,13 +34,12 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await api.post('/customers/login', formData);
+      const response = await api.post('/customers/create-account', formData);
       if (response.data.token && response.data.data.customer) {
-        setAuth(response.data.token, response.data.data.customer);
-        router.push('/home');
+        router.push('/login?message=Account created successfully! Please log in.');
       }
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'An error occurred during login';
+      const errorMessage = err.response?.data?.message || 'An error occurred during registration';
       setError(errorMessage);
 
       // Clear error after 5 seconds
@@ -64,13 +53,8 @@ export default function LoginPage() {
 
   return (
     <div className={styles.container}>
-      {successMessage && (
-        <div className={styles.toast}>
-          {successMessage}
-        </div>
-      )}
       <div className={styles.brandSection}>
-        <h1 className={styles.brandTitle}>Cartna</h1>
+        <h1 className={styles.brandTitle}>Welcome to Cartna</h1>
         <p className={styles.brandCopy}>
           Shop smart. Just say or type your grocery list and get the best-priced items instantly.
         </p>
@@ -79,6 +63,34 @@ export default function LoginPage() {
       <div className={styles.formSection}>
         <div className={styles.formContainer}>
           <form onSubmit={handleSubmit} className={styles.form}>
+            <div className={styles.inputGroup}>
+              <label htmlFor="firstName" className={styles.label}>First Name</label>
+              <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                className={styles.input}
+                required
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label htmlFor="lastName" className={styles.label}>Last Name</label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                className={styles.input}
+                required
+                disabled={isLoading}
+              />
+            </div>
+
             <div className={styles.inputGroup}>
               <label htmlFor="mobileNumber" className={styles.label}>Mobile Number (without +250)</label>
               <input
@@ -131,12 +143,12 @@ export default function LoginPage() {
               className={styles.button}
               disabled={isLoading}
             >
-              {isLoading ? 'Logging in...' : 'Log In'}
+              {isLoading ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
 
           <p className={styles.signupLink}>
-            Don&apos;t have an account? <Link href="/create-account">Create account</Link>
+            Already have an account? <Link href="/login">Log in</Link>
           </p>
         </div>
       </div>

@@ -15,14 +15,26 @@ const extractPriceConstraints = (query) => {
     return { maxPrice };
 };
 
+// Helper function to clean and normalize voice input
+const normalizeVoiceInput = (text) => {
+    return text
+        .replace(/period|full stop|comma|exclamation mark/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+};
+
 exports.searchProducts = async (req, res) => {
     try {
-        const { query } = req.body;
-        const { maxPrice } = extractPriceConstraints(query);
+        const { query, isVoiceInput } = req.body;
+        
+        // Handle voice input preprocessing
+        const processedQuery = isVoiceInput ? normalizeVoiceInput(query) : query;
+        const { maxPrice } = extractPriceConstraints(processedQuery);
         
         // Process natural language query and remove stop words
-        const doc = nlp(query);
-        const stopWords = ['i', 'want', 'need', 'looking', 'for', 'the', 'a', 'an', 'and', 'or'];
+        const doc = nlp(processedQuery);
+        const stopWords = ['i', 'want', 'need', 'looking', 'for', 'the', 'a', 'an', 'and', 'or', 
+                         'show', 'me', 'find', 'search', 'get', 'please', 'would', 'like', 'can', 'you'];
         const searchTerms = doc.terms().out('array')
             .map(term => term.toLowerCase())
             .filter(term => !stopWords.includes(term));
@@ -172,6 +184,8 @@ exports.searchProducts = async (req, res) => {
             count: formattedResults.length,
             searchTerms,
             priceRange: { maxPrice },
+            inputType: isVoiceInput ? 'voice' : 'text',
+            processedQuery,
             data: formattedResults
         });
 

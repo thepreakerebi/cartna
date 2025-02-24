@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import useAuthStore from '@/store/auth';
+import Header from '@/app/components/Header';
 import styles from './page.module.css';
 
 export default function HomePage() {
@@ -21,10 +22,7 @@ export default function HomePage() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <h1>Welcome, {customer.firstName}!</h1>
-      </header>
-      
+      <Header />
       <main className={styles.main}>
         <section className={styles.profileSection}>
           <h2>Your Profile</h2>

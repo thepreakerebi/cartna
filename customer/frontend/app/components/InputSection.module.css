@@ -29,7 +29,7 @@
 
 .input:focus {
   outline: none;
-  border-color: var(--primary);
+  border-color: var(--secondary);
 }
 
 .input:disabled {

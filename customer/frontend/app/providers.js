@@ -1,11 +1,14 @@
 'use client';
 
 import { CartProvider } from '@/store/cartContext';
+import { SearchProvider } from '@/store/searchContext';
 
 export function Providers({ children }) {
   return (
     <CartProvider>
-      {children}
+      <SearchProvider>
+        {children}
+      </SearchProvider>
     </CartProvider>
   );
 }

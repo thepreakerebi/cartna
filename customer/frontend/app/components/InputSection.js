@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { Mic, X, ArrowUp } from 'lucide-react';
 import styles from './InputSection.module.css';
+import { useSearch } from '@/store/searchContext';
 
 export default function InputSection() {
+  const { searchProducts, isLoading, error } = useSearch();
   const [isRecording, setIsRecording] = useState(false);
   const [input, setInput] = useState('');
 
@@ -12,13 +14,19 @@ export default function InputSection() {
     setInput(e.target.value);
   };
 
+  const handleKeyPress = async (e) => {
+    if (e.key === 'Enter' && input.trim() && !isLoading) {
+      await handleSubmit();
+    }
+  };
+
   const toggleRecording = () => {
     setIsRecording(!isRecording);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (input.trim()) {
-      // Handle submission logic here
+      await searchProducts(input);
       setInput('');
     }
   };
@@ -30,6 +38,7 @@ export default function InputSection() {
           type="text"
           value={input}
           onChange={handleInputChange}
+          onKeyPress={handleKeyPress}
           placeholder="Type your grocery list or use voice command"
           className={styles.input}
           disabled={isRecording}
@@ -63,9 +72,11 @@ export default function InputSection() {
           onClick={handleSubmit}
           className={`${styles.actionButton} ${styles.submitButton}`}
           aria-label="Submit"
-          disabled={!input.trim() && !isRecording}
+          type="submit"
+          disabled={!input.trim() && !isRecording || isLoading}
         >
-          <ArrowUp size={24} />
+          {isLoading ? 'Searching...' : <ArrowUp size={24} />}
+          {error && <div className={styles.error}>{error}</div>}
         </button>
       </div>
     </div>

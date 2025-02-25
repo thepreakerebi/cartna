@@ -2,16 +2,22 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../lib/api';
+import useAuthStore from './auth';
 
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { token } = useAuthStore();
 
   const fetchCart = async () => {
     try {
-      const response = await api.get('/cart');
+      const response = await api.get('/cart', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       setCartItems(response.data);
     } catch (error) {
       console.error('Error fetching cart:', error);
@@ -22,7 +28,11 @@ export function CartProvider({ children }) {
 
   const addToCart = async (productId, quantity = 1) => {
     try {
-      const response = await api.post('/cart', { productId, quantity });
+      const response = await api.post('/cart', { productId, quantity }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       setCartItems(response.data);
     } catch (error) {
       console.error('Error adding to cart:', error);
@@ -31,7 +41,12 @@ export function CartProvider({ children }) {
 
   const removeFromCart = async (productId) => {
     try {
-      const response = await api.delete('/cart', { data: { productId } });
+      const response = await api.delete('/cart', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        data: { productId }
+      });
       setCartItems(response.data.data);
     } catch (error) {
       console.error('Error removing from cart:', error);
@@ -40,7 +55,11 @@ export function CartProvider({ children }) {
 
   const updateCartItemQuantity = async (productId, quantity) => {
     try {
-      const response = await api.put('/cart', { productId, quantity });
+      const response = await api.put('/cart', { productId, quantity }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       setCartItems(response.data.data);
     } catch (error) {
       console.error('Error updating cart:', error);
@@ -48,8 +67,10 @@ export function CartProvider({ children }) {
   };
 
   useEffect(() => {
-    fetchCart();
-  }, []);
+    if (token) {
+      fetchCart();
+    }
+  }, [token]);
 
   return (
     <CartContext.Provider

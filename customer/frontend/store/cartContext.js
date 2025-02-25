@@ -89,6 +89,22 @@ export function CartProvider({ children }) {
     }
   };
 
+  // New function for local quantity updates
+  const updateLocalCartItemQuantity = (productId, newQuantity) => {
+    setCartItems(prevItems => {
+      return prevItems.map(item => {
+        if (item.product._id === productId) {
+          return {
+            ...item,
+            quantity: newQuantity
+          };
+        }
+        return item;
+      });
+    });
+  };
+
+  // Modified to handle backend synchronization
   const updateCartItemQuantity = async (productId, quantity) => {
     if (!token) return;
 
@@ -129,7 +145,8 @@ export function CartProvider({ children }) {
         addToCart,
         removeFromCart,
         updateCartItemQuantity,
-        fetchCart,
+        updateLocalCartItemQuantity,
+        fetchCart
       }}
     >
       {children}

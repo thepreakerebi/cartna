@@ -9,7 +9,7 @@ import { useEffect } from 'react';
 import useAuthStore from '@/store/auth';
 
 export default function CartPage() {
-  const { cartItems, updateCartItemQuantity, removeFromCart, loading } = useCart();
+  const { cartItems, updateCartItemQuantity, updateLocalCartItemQuantity, removeFromCart, loading } = useCart();
   const router = useRouter();
   const { token } = useAuthStore();
 
@@ -27,9 +27,9 @@ export default function CartPage() {
     }, 0);
   };
 
-  const handleQuantityChange = async (productId, newQuantity) => {
+  const handleQuantityChange = (productId, newQuantity) => {
     if (newQuantity < 1) return;
-    await updateCartItemQuantity(productId, newQuantity);
+    updateLocalCartItemQuantity(productId, newQuantity);
   };
 
   const handleRemoveItem = async (productId) => {
@@ -38,6 +38,21 @@ export default function CartPage() {
 
   const handleBackClick = () => {
     router.push('/home');
+  };
+
+  const handleCheckout = async () => {
+    try {
+      // Sync all cart items with the backend
+      for (const item of cartItems) {
+        await updateCartItemQuantity(item.product._id, item.quantity);
+      }
+      // After successful sync, you can proceed with checkout
+      // For now, we'll just show an alert
+      alert('Cart synchronized successfully! Checkout functionality coming soon.');
+    } catch (error) {
+      console.error('Error during checkout:', error);
+      alert('Failed to sync cart items. Please try again.');
+    }
   };
 
   if (loading) {
@@ -133,7 +148,12 @@ export default function CartPage() {
                 <span>Total</span>
                 <span>RWF {calculateTotal().toLocaleString()}</span>
             </div>
-            <button className={styles.checkoutButton}>Proceed to Checkout</button>
+            <button 
+              className={styles.checkoutButton}
+              onClick={handleCheckout}
+            >
+              Proceed to Checkout
+            </button>
             </div>
         </div>
         </div>

@@ -10,7 +10,7 @@ import styles from './Header.module.css';
 export default function Header() {
   const router = useRouter();
   const { customer, clearAuth } = useAuthStore();
-  const { cartItems } = useCart();
+  const { cartItems, loading } = useCart();
   const [showPopover, setShowPopover] = useState(false);
 
   const handleLogout = () => {
@@ -18,14 +18,22 @@ export default function Header() {
     router.push('/login');
   };
 
+  const handleCartClick = () => {
+    router.push('/cart');
+  };
+
   return (
     <header className={styles.header}>
       <div className={styles.headerContent}>
         <div className={styles.brandContainer}>
           <h1 className={styles.brandName}>Cartna</h1>
-          <button className={styles.cartButton} aria-label="Shopping cart">
+          <button 
+            className={styles.cartButton} 
+            onClick={handleCartClick}
+            aria-label="Shopping cart"
+          >
             <ShoppingCart size={24} />
-            {cartItems.length > 0 && (
+            {!loading && cartItems.length > 0 && (
               <span className={styles.cartBadge}>{cartItems.length}</span>
             )}
           </button>

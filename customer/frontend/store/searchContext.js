@@ -13,6 +13,11 @@ export function SearchProvider({ children }) {
   const { token } = useAuthStore();
 
   const searchProducts = async (query) => {
+    if (!query?.trim()) {
+      setSearchResults(null);
+      return;
+    }
+
     setIsLoading(true);
     setError('');
 

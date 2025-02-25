@@ -7,9 +7,11 @@ import { useCart } from '@/store/cartContext';
 import { useEffect, useState } from 'react';
 
 export default function QuerySection() {
-  const { searchResults, error, setError } = useSearch();
-  const { addToCart } = useCart();
+  const { searchResults, error: searchError, setError } = useSearch();
+  const { addToCart, loading: cartLoading, cartItems } = useCart();
   const [queryHistory, setQueryHistory] = useState([]);
+  const [addingToCart, setAddingToCart] = useState(null);
+  const [toast, setToast] = useState({ message: '', visible: false });
 
   useEffect(() => {
     if (searchResults) {
@@ -25,11 +27,22 @@ export default function QuerySection() {
   }, [searchResults]);
 
   const handleAddToCart = async (productId) => {
+    // Check if product is already in cart
+    const existingItem = cartItems.find(item => item.product._id === productId);
+    if (existingItem) {
+      setToast({ message: 'This product is already in your cart', visible: true });
+      setTimeout(() => setToast({ message: '', visible: false }), 5000);
+      return;
+    }
+
     try {
+      setAddingToCart(productId);
       await addToCart(productId, 1);
     } catch (err) {
       setError('Failed to add item to cart');
       setTimeout(() => setError(''), 3000);
+    } finally {
+      setAddingToCart(null);
     }
   };
 
@@ -85,8 +98,9 @@ export default function QuerySection() {
                         <button
                           onClick={() => handleAddToCart(product._id)}
                           className={styles.addToCartButton}
+                          disabled={addingToCart === product._id || cartLoading}
                         >
-                          Add to Cart
+                          {addingToCart === product._id ? 'Adding...' : 'Add to Cart'}
                         </button>
                       </div>
                     </div>
@@ -97,9 +111,14 @@ export default function QuerySection() {
                   </div>
                 )}
               </div>
-              {error && <div className={styles.error}>{error}</div>}
+              {searchError && <div className={styles.error}>{searchError}</div>}
             </div>
           ))}
+        </div>
+      )}
+      {toast.visible && (
+        <div className={styles.toast}>
+          {toast.message}
         </div>
       )}
     </section>

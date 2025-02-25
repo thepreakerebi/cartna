@@ -80,12 +80,16 @@ export function CartProvider({ children }) {
         ...item,
         product: {
           ...item.product,
-          price: item.product.price || item.product.unitPrice || 0
-        }
+          price: item.product.price || item.product.unitPrice || 0,
+          supermarket: item.branch?.createdBy?.supermarketName || item.product.supermarket
+        },
+        quantity: item.quantity
       }));
       setCartItems(mappedItems);
     } catch (error) {
       console.error('Error removing from cart:', error);
+      // Keep the existing items in case of error
+      setCartItems(prevItems => prevItems.filter(item => item.product._id !== productId));
     }
   };
 
@@ -119,8 +123,10 @@ export function CartProvider({ children }) {
         ...item,
         product: {
           ...item.product,
-          price: item.product.price || item.product.unitPrice || 0
-        }
+          price: item.price || item.product.unitPrice || 0,
+          supermarket: item.branch?.createdBy?.supermarketName || item.product.supermarket
+        },
+        quantity: item.quantity
       }));
       setCartItems(mappedItems);
     } catch (error) {

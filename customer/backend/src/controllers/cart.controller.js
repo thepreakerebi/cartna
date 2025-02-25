@@ -161,10 +161,18 @@ exports.updateCartItem = async (req, res) => {
     cart.items[itemIndex].price = product.unitPrice * quantity;
     await cart.save();
 
-    // Populate product and branch details
+    // Populate product and branch details with unitPrice
     cart = await Cart.findById(cart._id)
-      .populate('items.product', 'name price images')
-      .populate('items.branch', 'name location');
+      .populate('items.product', 'name price images unitPrice')
+      .populate({
+        path: 'items.branch',
+        select: 'name location createdBy',
+        populate: {
+          path: 'createdBy',
+          select: 'supermarketName',
+          model: 'Supermarket'
+        }
+      });
 
     res.status(200).json({
       status: 'success',
@@ -218,10 +226,18 @@ exports.removeFromCart = async (req, res) => {
 
     await cart.save();
 
-    // Populate product and branch details
+    // Populate product and branch details with unitPrice
     cart = await Cart.findById(cart._id)
-      .populate('items.product', 'name price images')
-      .populate('items.branch', 'name location');
+      .populate('items.product', 'name price images unitPrice')
+      .populate({
+        path: 'items.branch',
+        select: 'name location createdBy',
+        populate: {
+          path: 'createdBy',
+          select: 'supermarketName',
+          model: 'Supermarket'
+        }
+      });
 
     res.status(200).json({
       status: 'success',

@@ -22,22 +22,14 @@ export default function CartPage() {
   const calculateTotal = () => {
     if (!cartItems) return 0;
     return cartItems.reduce((total, item) => {
-      const price = item.product?.price || item.product?.unitPrice || 0;
-      return total + (price * item.quantity);
+      const unitPrice = item.product?.unitPrice || item.product?.price || 0;
+      return total + (unitPrice * item.quantity);
     }, 0);
   };
 
   const handleQuantityChange = (productId, newQuantity) => {
     if (newQuantity < 1) return;
     updateLocalCartItemQuantity(productId, newQuantity);
-  };
-
-  const handleRemoveItem = async (productId) => {
-    await removeFromCart(productId);
-  };
-
-  const handleBackClick = () => {
-    router.push('/home');
   };
 
   const handleCheckout = async () => {
@@ -47,12 +39,19 @@ export default function CartPage() {
         await updateCartItemQuantity(item.product._id, item.quantity);
       }
       // After successful sync, you can proceed with checkout
-      // For now, we'll just show an alert
       alert('Items are being processed');
     } catch (error) {
       console.error('Error during checkout:', error);
       alert('Failed to sync cart items. Please try again.');
     }
+  };
+
+  const handleRemoveItem = async (productId) => {
+    await removeFromCart(productId);
+  };
+
+  const handleBackClick = () => {
+    router.push('/home');
   };
 
   if (loading) {
@@ -111,7 +110,7 @@ export default function CartPage() {
                     </div>
                     <div className={styles.productInfo}>
                     <h3>{item.product.name}</h3>
-                    <p className={styles.price}>RWF {price.toLocaleString()}</p>
+                    <p className={styles.price}>RWF {(item.product.unitPrice || item.product.price || 0).toLocaleString()}</p>
                     <p className={styles.supermarket}>{item.product.supermarket}</p>
                     </div>
                     <div className={styles.quantityControls}>
@@ -131,7 +130,7 @@ export default function CartPage() {
                     </button>
                     </div>
                     <div className={styles.itemTotal}>
-                    RWF {(price * item.quantity).toLocaleString()}
+                    RWF {((item.product.unitPrice || item.product.price || 0) * item.quantity).toLocaleString()}
                     </div>
                     <button
                     className={styles.removeButton}

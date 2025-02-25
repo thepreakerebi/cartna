@@ -13,6 +13,11 @@ export default function QuerySection() {
   const [addingToCart, setAddingToCart] = useState(null);
   const [toast, setToast] = useState({ message: '', visible: false });
 
+  // Clear query history when component mounts
+  useEffect(() => {
+    setQueryHistory([]);
+  }, []);
+
   useEffect(() => {
     if (searchResults) {
       setQueryHistory(prev => [...prev, searchResults]);

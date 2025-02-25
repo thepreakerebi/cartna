@@ -92,21 +92,23 @@ export default function QuerySection() {
                           />
                         )}
                       </div>
-                      <div className={styles.productInfo}>
-                        <h3>{product.name}</h3>
-                        <p className={styles.price}>RWF {product.unitPrice.toLocaleString()}</p>
-                        <p className={styles.supermarket}>
-                          {product.supermarket}
-                        </p>
-                      </div>
-                      <div className={styles.productAction}>
-                        <button
-                          onClick={() => handleAddToCart(product._id)}
-                          className={styles.addToCartButton}
-                          disabled={addingToCart === product._id || cartLoading}
-                        >
-                          {addingToCart === product._id ? 'Adding...' : 'Add to Cart'}
-                        </button>
+                      <div className={styles.productDetailsContainer}>
+                        <div className={styles.productInfo}>
+                          <h3>{product.name}</h3>
+                          <p className={styles.price}>RWF {product.unitPrice.toLocaleString()}</p>
+                          <p className={styles.supermarket}>
+                            {product.supermarket}
+                          </p>
+                        </div>
+                        <div className={styles.productAction}>
+                          <button
+                            onClick={() => handleAddToCart(product._id)}
+                            className={styles.addToCartButton}
+                            disabled={addingToCart === product._id || cartLoading}
+                          >
+                            {addingToCart === product._id ? 'Adding...' : 'Add to Cart'}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))

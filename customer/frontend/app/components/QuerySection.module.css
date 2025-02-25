@@ -134,6 +134,18 @@
   border-radius: var(--radius-md);
 }
 
+.productDetailsContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+@media screen and (min-width: 400px) {
+  .productDetailsContainer {
+    flex-direction: row;
+    gap: var(--space-lg);
+  }
+}
+
 .productInfo {
   flex: 1;
   padding: 0;

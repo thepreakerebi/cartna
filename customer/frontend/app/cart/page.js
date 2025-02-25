@@ -3,9 +3,12 @@
 import { useCart } from '@/store/cartContext';
 import styles from './page.module.css';
 import Image from 'next/image';
+import { ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function CartPage() {
   const { cartItems, updateCartItemQuantity, removeFromCart, loading } = useCart();
+  const router = useRouter();
 
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => {
@@ -22,6 +25,10 @@ export default function CartPage() {
     await removeFromCart(productId);
   };
 
+  const handleBackClick = () => {
+    router.push('/home');
+  };
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -33,6 +40,12 @@ export default function CartPage() {
   if (cartItems.length === 0) {
     return (
       <div className={styles.container}>
+        <div className={styles.cartHeader}>
+          <button onClick={handleBackClick} className={styles.backButton}>
+            <ArrowLeft size={24} />
+          </button>
+          <h5>Your Cart</h5>
+        </div>
         <div className={styles.emptyCart}>
           <h2>Your cart is empty</h2>
           <p>Add some items to your cart to see them here</p>
@@ -43,7 +56,13 @@ export default function CartPage() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Your Cart</h1>
+      <div className={styles.cartHeader}>
+        <button onClick={handleBackClick} className={styles.backButton}>
+          <ArrowLeft size={24} />
+        </button>
+        <h1 className={styles.cartHeaderText}>Your Cart</h1>
+      </div>
+      <p className={styles.cartCount}>{cartItems.length} items in your cart</p>
       <div className={styles.cartContent}>
         <div className={styles.cartItems}>
           {cartItems.map((item) => (

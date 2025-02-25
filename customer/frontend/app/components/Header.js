@@ -33,7 +33,7 @@ export default function Header() {
             aria-label="Shopping cart"
           >
             <ShoppingCart size={24} />
-            {!loading && cartItems.length > 0 && (
+            {cartItems && cartItems.length > 0 && !loading && (
               <span className={styles.cartBadge}>{cartItems.length}</span>
             )}
           </button>

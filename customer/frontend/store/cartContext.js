@@ -7,7 +7,7 @@ import useAuthStore from './auth';
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
-  const [cartItems, setCartItems] = useState(null);
+  const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const { token } = useAuthStore();
 
@@ -24,7 +24,15 @@ export function CartProvider({ children }) {
           Authorization: `Bearer ${token}`
         }
       });
-      setCartItems(response.data.data.items || []);
+      const items = response.data.data.items || [];
+      const mappedItems = items.map(item => ({
+        ...item,
+        product: {
+          ...item.product,
+          price: item.product.price || item.product.unitPrice || 0
+        }
+      }));
+      setCartItems(mappedItems);
     } catch (error) {
       console.error('Error fetching cart:', error);
       setCartItems([]);
@@ -86,7 +94,7 @@ export function CartProvider({ children }) {
   return (
     <CartContext.Provider
       value={{
-        cartItems: cartItems || [],
+        cartItems,
         loading,
         addToCart,
         removeFromCart,

@@ -9,6 +9,7 @@ const CartContext = createContext();
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const { token } = useAuthStore();
 
   const fetchCart = async () => {
@@ -50,7 +51,15 @@ export function CartProvider({ children }) {
           Authorization: `Bearer ${token}`
         }
       });
-      setCartItems(response.data.data.items || []);
+      const items = response.data.data.items || [];
+      const mappedItems = items.map(item => ({
+        ...item,
+        product: {
+          ...item.product,
+          price: item.product.price || item.product.unitPrice || 0
+        }
+      }));
+      setCartItems(mappedItems);
     } catch (error) {
       console.error('Error adding to cart:', error);
     }
@@ -60,13 +69,21 @@ export function CartProvider({ children }) {
     if (!token) return;
 
     try {
-      const response = await api.delete('/cart', {
+      const response = await api.delete('/cart/items', {
         headers: {
           Authorization: `Bearer ${token}`
         },
         data: { productId }
       });
-      setCartItems(response.data.data.items || []);
+      const items = response.data.data.items || [];
+      const mappedItems = items.map(item => ({
+        ...item,
+        product: {
+          ...item.product,
+          price: item.product.price || item.product.unitPrice || 0
+        }
+      }));
+      setCartItems(mappedItems);
     } catch (error) {
       console.error('Error removing from cart:', error);
     }
@@ -76,20 +93,33 @@ export function CartProvider({ children }) {
     if (!token) return;
 
     try {
-      const response = await api.put('/cart', { productId, quantity }, {
+      const response = await api.patch('/cart', { productId, quantity }, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
-      setCartItems(response.data.data.items || []);
+      const items = response.data.data.items || [];
+      const mappedItems = items.map(item => ({
+        ...item,
+        product: {
+          ...item.product,
+          price: item.product.price || item.product.unitPrice || 0
+        }
+      }));
+      setCartItems(mappedItems);
     } catch (error) {
       console.error('Error updating cart:', error);
     }
   };
 
   useEffect(() => {
+    setMounted(true);
     fetchCart();
   }, [token]);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <CartContext.Provider

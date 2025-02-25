@@ -35,6 +35,14 @@
   background-color: var(--hover);
 }
 
+.mainCartContent {
+    max-width: 1000px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+}
+
 .cartCount {
   font-size: var(--font-lg);
   color: var(--text-secondary);
@@ -90,7 +98,7 @@
 }
 
 .price {
-  font-size: var(--font-lg);
+  font-size: var(--font-sm);
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: var(--space-xs);
@@ -207,7 +215,7 @@
 
 .emptyCart {
   text-align: center;
-  margin-top: var(--space-2xl);
+  margin-top: var(--space-4xl);
 }
 
 .emptyCart h2 {

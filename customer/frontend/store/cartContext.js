@@ -30,7 +30,8 @@ export function CartProvider({ children }) {
         ...item,
         product: {
           ...item.product,
-          price: item.product.price || item.product.unitPrice || 0
+          price: item.product.unitPrice || item.product.price || 0,
+          supermarket: item.branch?.createdBy?.supermarketName || item.product.supermarket
         }
       }));
       setCartItems(mappedItems);
@@ -56,7 +57,8 @@ export function CartProvider({ children }) {
         ...item,
         product: {
           ...item.product,
-          price: item.product.price || item.product.unitPrice || 0
+          price: item.product.unitPrice || item.product.price || 0,
+          supermarket: item.branch?.createdBy?.supermarketName || item.product.supermarket
         }
       }));
       setCartItems(mappedItems);

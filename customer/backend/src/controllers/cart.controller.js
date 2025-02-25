@@ -7,8 +7,16 @@ const Supermarket = require('../../../../supermarket/backend/src/models/supermar
 exports.getCart = async (req, res) => {
   try {
     let cart = await Cart.findOne({ customer: req.customer.id })
-      .populate('items.product', 'name price images')
-      .populate('items.branch', 'name location');
+      .populate('items.product', 'name price images unitPrice')
+      .populate({
+        path: 'items.branch',
+        select: 'name location createdBy',
+        populate: {
+          path: 'createdBy',
+          select: 'supermarketName',
+          model: 'Supermarket'
+        }
+      });
 
     if (!cart) {
       cart = await Cart.create({

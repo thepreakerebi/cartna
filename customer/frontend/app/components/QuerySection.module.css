@@ -101,7 +101,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: var(--space-md);
-  margin-top: var(--space-xl);
+  margin-top: var(--space-sm);
 }
 
 .productCard {

@@ -33,51 +33,53 @@ export default function InputSection() {
 
   return (
     <div className={styles.inputSection}>
-      <div className={styles.inputContainer}>
-        <input
-          type="text"
-          value={input}
-          onChange={handleInputChange}
-          onKeyPress={handleKeyPress}
-          placeholder="Type your grocery list or use voice command"
-          className={styles.input}
-          disabled={isRecording}
-        />
-        {isRecording && (
-          <div className={styles.recordingUI}>
-            <div className={styles.recordingIndicator}>
-              Recording...
+      <div className={styles.mainContainer}>
+        <div className={styles.inputContainer}>
+          <input
+            type="text"
+            value={input}
+            onChange={handleInputChange}
+            onKeyPress={handleKeyPress}
+            placeholder="Type what you want to buy or use voice command"
+            className={styles.input}
+            disabled={isRecording}
+          />
+          {isRecording && (
+            <div className={styles.recordingUI}>
+              <div className={styles.recordingIndicator}>
+                Recording...
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-      <div className={styles.actionsContainer}>
-        <button
-          onClick={toggleRecording}
-          className={`${styles.actionButton} ${styles.micButton}`}
-          aria-label={isRecording ? 'Stop recording' : 'Start recording'}
-        >
-          <Mic size={24} />
-        </button>
-        {isRecording && (
+          )}
+        </div>
+        <div className={styles.actionsContainer}>
           <button
             onClick={toggleRecording}
-            className={`${styles.actionButton} ${styles.cancelButton}`}
-            aria-label="Cancel recording"
+            className={`${styles.actionButton} ${styles.micButton}`}
+            aria-label={isRecording ? 'Stop recording' : 'Start recording'}
           >
-            <X size={24} />
+            <Mic size={24} />
           </button>
-        )}
-        <button
-          onClick={handleSubmit}
-          className={`${styles.actionButton} ${styles.submitButton}`}
-          aria-label="Submit"
-          type="submit"
-          disabled={!input.trim() && !isRecording || isLoading}
-        >
-          {isLoading ? 'Searching...' : <ArrowUp size={24} />}
-          {error && <div className={styles.error}>{error}</div>}
-        </button>
+          {isRecording && (
+            <button
+              onClick={toggleRecording}
+              className={`${styles.actionButton} ${styles.cancelButton}`}
+              aria-label="Cancel recording"
+            >
+              <X size={24} />
+            </button>
+          )}
+          <button
+            onClick={handleSubmit}
+            className={`${styles.actionButton} ${styles.submitButton}`}
+            aria-label="Submit"
+            type="submit"
+            disabled={!input.trim() && !isRecording || isLoading}
+          >
+            {isLoading ? 'Searching...' : <ArrowUp size={24} />}
+            {error && <div className={styles.error}>{error}</div>}
+          </button>
+        </div>
       </div>
     </div>
   );

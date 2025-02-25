@@ -5,13 +5,15 @@ import styles from './page.module.css';
 import Image from 'next/image';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import useAuthStore from '@/store/auth';
 
 export default function CartPage() {
   const { cartItems, updateCartItemQuantity, updateLocalCartItemQuantity, removeFromCart, loading } = useCart();
   const router = useRouter();
   const { token } = useAuthStore();
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   useEffect(() => {
     if (!token) {
@@ -42,16 +44,22 @@ export default function CartPage() {
 
   const handleCheckout = async () => {
     try {
+      setToastMessage('Items are being processed');
+      setShowToast(true);
       // Sync all cart items with the backend
       for (const item of cartItems) {
         await updateCartItemQuantity(item.product._id, item.quantity);
       }
-      // After successful sync, you can proceed with checkout
-      // For now, we'll just show an alert
-      alert('Cart synchronized successfully! Checkout functionality coming soon.');
+      setTimeout(() => {
+        setShowToast(false);
+      }, 3000);
     } catch (error) {
       console.error('Error during checkout:', error);
-      alert('Failed to sync cart items. Please try again.');
+      setToastMessage('Failed to sync cart items. Please try again.');
+      setShowToast(true);
+      setTimeout(() => {
+        setShowToast(false);
+      }, 3000);
     }
   };
 
@@ -82,6 +90,11 @@ export default function CartPage() {
 
   return (
     <div className={styles.container}>
+      {showToast && (
+        <div className={styles.toast}>
+          {toastMessage}
+        </div>
+      )}
       <div className={styles.cartHeader}>
         <button onClick={handleBackClick} className={styles.backButton}>
           <ArrowLeft size={24} />

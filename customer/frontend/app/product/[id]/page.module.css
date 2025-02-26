@@ -135,7 +135,7 @@
 .addToCartButton {
   padding: var(--space-sm) var(--space-lg);
   background-color: var(--primary);
-  color: white;
+  color: var(--text-primary);
   border: none;
   border-radius: var(--radius-md);
   font-weight: 600;

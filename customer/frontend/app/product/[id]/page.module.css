@@ -120,7 +120,7 @@
 
 .productName {
   font-size: var(--font-xl);
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-primary);
   margin: 0 0 var(--space-sm);
 }
@@ -153,7 +153,6 @@
 }
 
 .supermarket {
-  padding: var(--space-lg);
   background-color: var(--background-alt);
   border-radius: var(--radius-md);
 }
@@ -172,7 +171,6 @@
 }
 
 .description {
-  padding: var(--space-lg);
   background-color: var(--background-alt);
   border-radius: var(--radius-md);
 }

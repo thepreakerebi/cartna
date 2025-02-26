@@ -5,8 +5,10 @@ import styles from './QuerySection.module.css';
 import { useSearch } from '@/store/searchContext';
 import { useCart } from '@/store/cartContext';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function QuerySection() {
+  const router = useRouter();
   const { searchResults, error: searchError, setError } = useSearch();
   const { addToCart, loading: cartLoading, cartItems } = useCart();
   const [queryHistory, setQueryHistory] = useState([]);
@@ -94,7 +96,20 @@ export default function QuerySection() {
                       </div>
                       <div className={styles.productDetailsContainer}>
                         <div className={styles.productInfo}>
-                          <h3>{product.name}</h3>
+                          <h3 
+                            onClick={() => {
+                              router.push(`/product/${product._id}`);
+                            }} 
+                            style={{ 
+                              cursor: 'pointer', 
+                              textDecoration: 'none', 
+                              transition: 'text-decoration 0.2s' 
+                            }} 
+                            onMouseEnter={(e) => e.target.style.textDecoration = 'underline'} 
+                            onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                          >
+                            {product.name}
+                          </h3>
                           <p className={styles.price}>RWF {product.unitPrice.toLocaleString()}</p>
                           <p className={styles.supermarket}>
                             {product.supermarket}

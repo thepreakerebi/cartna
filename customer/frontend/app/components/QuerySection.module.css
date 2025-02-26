@@ -102,6 +102,7 @@
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: var(--space-md);
   margin-top: var(--space-sm);
+  width: 100%;
 }
 
 .productCard {
@@ -114,6 +115,7 @@
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition: transform 0.2s, box-shadow 0.2s;
+  width: 100%;
 }
 
 .productCard:hover {
@@ -137,18 +139,24 @@
 .productDetailsContainer {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 @media screen and (min-width: 400px) {
   .productDetailsContainer {
     flex-direction: row;
-    gap: var(--space-lg);
+    justify-content: space-between;
+  }
+
+  .productInfo {
+    width: 100%;
   }
 }
 
 .productInfo {
   flex: 1;
   padding: 0;
+  width: 100%;
 }
 
 .productInfo h3 {

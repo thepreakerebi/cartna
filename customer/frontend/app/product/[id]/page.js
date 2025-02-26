@@ -35,6 +35,7 @@ export default function ProductPage({ params }) {
             Authorization: `Bearer ${token}`
           }
         });
+        console.log('Product data:', response.data.data);
         setProduct(response.data.data);
       } catch (err) {
         setError('Failed to load product details');
@@ -179,12 +180,10 @@ export default function ProductPage({ params }) {
               <p>{product.supermarket}</p>
             </div>
 
-            {product.description && (
-              <div className={styles.description}>
-                <h3>Description</h3>
-                <p>{product.description}</p>
-              </div>
-            )}
+            <div className={styles.description}>
+              <h3>Description</h3>
+              <p>{product.description || 'No description available'}</p>
+            </div>
           </div>
         </div>
       </main>

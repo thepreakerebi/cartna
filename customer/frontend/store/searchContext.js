@@ -36,7 +36,8 @@ export function SearchProvider({ children }) {
           name: product.name,
           unitPrice: product.price,
           images: product.images,
-          supermarket: product.supermarket
+          supermarket: product.supermarket,
+          description: product.description
         }));
 
         setSearchResults({

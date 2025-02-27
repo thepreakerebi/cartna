@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Pen } from 'lucide-react';
 import useAuthStore from '@/store/auth';
 import Header from '@/app/components/Header';
 import QuerySection from '@/app/components/QuerySection';
@@ -29,6 +30,13 @@ export default function HomePage() {
         <QuerySection />
       </main>
       <InputSection />
+      <button 
+        onClick={() => router.push('/shopping-list')}
+        className={styles.shoppingListButton}
+        aria-label="Create shopping list"
+      >
+        <Pen size={24} />
+      </button>
     </div>
   );
 }

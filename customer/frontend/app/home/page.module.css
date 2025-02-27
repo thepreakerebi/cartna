@@ -145,3 +145,26 @@
 .profileInfo {
   margin-top: var(--space-md);
 }
+.shoppingListButton {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: var(--text-primary);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s, background-color 0.2s;
+  z-index: 100;
+}
+
+.shoppingListButton:hover {
+  transform: scale(1.05);
+  background-color: var(--primary-dark);
+}

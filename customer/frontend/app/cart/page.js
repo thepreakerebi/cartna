@@ -108,8 +108,8 @@ export default function CartPage() {
                         />
                     )}
                     </div>
+                    <h2 className={styles.productName}>{item.product.productName}</h2>
                     <div className={styles.productInfo}>
-                    <h3>{item.product.name}</h3>
                     <p className={styles.price}>RWF {(item.product.unitPrice || item.product.price || 0).toLocaleString()}</p>
                     <p className={styles.supermarket}>{item.product.supermarket}</p>
                     </div>

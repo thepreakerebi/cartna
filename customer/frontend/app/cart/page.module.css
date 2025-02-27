@@ -86,6 +86,13 @@
   border-radius: var(--radius-md);
 }
 
+.productName {
+  font-size: var(--font-xl);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-sm);
+}
+
 .productInfo {
   flex: 1;
 }

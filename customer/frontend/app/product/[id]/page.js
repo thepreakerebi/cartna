@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import { ArrowLeft } from 'lucide-react';
 import { useCart } from '@/store/cartContext';
@@ -10,7 +10,9 @@ import useAuthStore from '@/store/auth';
 import api from '@/lib/api';
 import styles from './page.module.css';
 
-export default function ProductPage({ params }) {
+export default function ProductPage() {
+  const params = useParams();
+  const id = params.id;
   const router = useRouter();
   const { token } = useAuthStore();
   const { addToCart, loading: cartLoading, cartItems } = useCart();
@@ -30,7 +32,7 @@ export default function ProductPage({ params }) {
 
     const fetchProduct = async () => {
       try {
-        const response = await api.get(`/search/products/${params.id}`, {
+        const response = await api.get(`/search/products/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -45,7 +47,7 @@ export default function ProductPage({ params }) {
     };
 
     fetchProduct();
-  }, [params.id, token, router]);
+  }, [id, token, router]);
 
   const handleBackClick = () => {
     router.back();
@@ -75,7 +77,7 @@ export default function ProductPage({ params }) {
 
     try {
       setAddingToCart(true);
-      await addToCart(product._id, 1);
+      await addToCart(product.id || product._id, 1);
       setToast({ message: 'Product added to cart successfully', visible: true });
       setTimeout(() => setToast({ message: '', visible: false }), 5000);
       setAddedToCart(true);

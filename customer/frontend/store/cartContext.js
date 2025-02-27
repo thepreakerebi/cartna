@@ -57,13 +57,14 @@ export function CartProvider({ children }) {
         ...item,
         product: {
           ...item.product,
-          price: item.product.unitPrice || item.product.price || 0,
+          price: item.product.unitPrice,
           supermarket: item.branch?.createdBy?.supermarketName || item.product.supermarket
         }
       }));
       setCartItems(mappedItems);
     } catch (error) {
       console.error('Error adding to cart:', error);
+      throw error; // Propagate error to handle in component
     }
   };
 

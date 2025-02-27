@@ -108,26 +108,28 @@ export default function CartPage() {
                         />
                     )}
                     </div>
-                    <h2 className={styles.productName}>{item.product.productName}</h2>
-                    <div className={styles.productInfo}>
-                    <p className={styles.price}>RWF {(item.product.unitPrice || item.product.price || 0).toLocaleString()}</p>
-                    <p className={styles.supermarket}>{item.product.supermarket}</p>
+                    <div className={styles.productInfoContainer}>
+                      <h2 className={styles.productName}>{item.product.productName}</h2>
+                      <div className={styles.productInfo}>
+                        <p className={styles.price}>RWF {(item.product.unitPrice || item.product.price || 0).toLocaleString()}</p>
+                        <p className={styles.supermarket}>{item.product.supermarket}</p>
+                      </div>
                     </div>
                     <div className={styles.quantityControls}>
-                    <button
-                        className={styles.quantityButton}
-                        onClick={() => handleQuantityChange(item.product._id, item.quantity - 1)}
-                        disabled={item.quantity <= 1}
-                    >
-                        -
-                    </button>
-                    <span className={styles.quantity}>{item.quantity}</span>
-                    <button
-                        className={styles.quantityButton}
-                        onClick={() => handleQuantityChange(item.product._id, item.quantity + 1)}
-                    >
-                        +
-                    </button>
+                      <button
+                          className={styles.quantityButton}
+                          onClick={() => handleQuantityChange(item.product._id, item.quantity - 1)}
+                          disabled={item.quantity <= 1}
+                      >
+                          -
+                      </button>
+                      <span className={styles.quantity}>{item.quantity}</span>
+                      <button
+                          className={styles.quantityButton}
+                          onClick={() => handleQuantityChange(item.product._id, item.quantity + 1)}
+                      >
+                          +
+                      </button>
                     </div>
                     <div className={styles.itemTotal}>
                     RWF {((item.product.unitPrice || item.product.price || 0) * item.quantity).toLocaleString()}

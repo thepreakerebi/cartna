@@ -7,7 +7,7 @@ const Supermarket = require('../../../../supermarket/backend/src/models/supermar
 exports.getCart = async (req, res) => {
   try {
     let cart = await Cart.findOne({ customer: req.customer.id })
-      .populate('items.product', 'name price images unitPrice')
+      .populate('items.product', 'name productName price images unitPrice')
       .populate({
         path: 'items.branch',
         select: 'name location createdBy',
@@ -95,7 +95,7 @@ exports.addToCart = async (req, res) => {
 
     // Populate product, branch, and supermarket details
     cart = await Cart.findById(cart._id)
-      .populate('items.product', 'name price images unitPrice')
+      .populate('items.product', 'name productName price images unitPrice')
       .populate({
         path: 'items.branch',
         select: 'name location createdBy',
@@ -171,7 +171,7 @@ exports.updateCartItem = async (req, res) => {
 
     // Populate product and branch details with unitPrice
     cart = await Cart.findById(cart._id)
-      .populate('items.product', 'name price images unitPrice')
+      .populate('items.product', 'name productName price images unitPrice')
       .populate({
         path: 'items.branch',
         select: 'name location createdBy',
@@ -236,7 +236,7 @@ exports.removeFromCart = async (req, res) => {
 
     // Populate product and branch details with unitPrice
     cart = await Cart.findById(cart._id)
-      .populate('items.product', 'name price images unitPrice')
+      .populate('items.product', 'name productName price images unitPrice')
       .populate({
         path: 'items.branch',
         select: 'name location createdBy',

@@ -2,7 +2,7 @@ import "./globals.css";
 import { Providers } from './providers';
 
 export const metadata = {
-  title: "Create Next App",
+  title: "Cartna - ChatGPT for shopping",
   description: "The best way to buy from supermarkets",
 };
 

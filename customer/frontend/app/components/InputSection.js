@@ -11,6 +11,7 @@ export default function InputSection() {
   const [input, setInput] = useState('');
   const [recognition, setRecognition] = useState(null);
   const [toast, setToast] = useState({ message: '', visible: false });
+  const [hasSpoken, setHasSpoken] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
@@ -24,6 +25,7 @@ export default function InputSection() {
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         setInput(transcript);
+        setHasSpoken(true);
         handleVoiceSubmit(transcript);
       };
 
@@ -34,25 +36,16 @@ export default function InputSection() {
 
       recognition.onend = () => {
         setIsRecording(false);
-        if (!input.trim()) {
+        if (!hasSpoken) {
           setToast({ message: 'No speech detected. Please try again.', visible: true });
           setTimeout(() => setToast({ message: '', visible: false }), 3000);
         }
+        setHasSpoken(false);
       };
 
       setRecognition(recognition);
     }
-  }, [input]);
-
-  const handleInputChange = (e) => {
-    setInput(e.target.value);
-  };
-
-  const handleKeyPress = async (e) => {
-    if (e.key === 'Enter' && input.trim() && !isLoading) {
-      await handleSubmit();
-    }
-  };
+  }, []); // Remove input dependency
 
   const toggleRecording = () => {
     if (!recognition) {
@@ -63,9 +56,20 @@ export default function InputSection() {
     if (isRecording) {
       recognition.stop();
     } else {
+      setHasSpoken(false); // Reset hasSpoken when starting new recording
       recognition.start();
     }
     setIsRecording(!isRecording);
+  };
+
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
+  };
+
+  const handleKeyPress = async (e) => {
+    if (e.key === 'Enter' && input.trim() && !isLoading) {
+      await handleSubmit();
+    }
   };
 
   const handleVoiceSubmit = async (transcript) => {

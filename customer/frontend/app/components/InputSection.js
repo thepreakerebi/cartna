@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Mic, X, ArrowUp } from 'lucide-react';
 import styles from './InputSection.module.css';
 import { useSearch } from '@/store/searchContext';
@@ -9,6 +9,36 @@ export default function InputSection() {
   const { searchProducts, isLoading, error } = useSearch();
   const [isRecording, setIsRecording] = useState(false);
   const [input, setInput] = useState('');
+  const [recognition, setRecognition] = useState(null);
+
+  useEffect(() => {
+    // Initialize speech recognition
+    if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
+      const SpeechRecognition = window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+        handleVoiceSubmit(transcript);
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setIsRecording(false);
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+
+      setRecognition(recognition);
+    }
+  }, []);
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
@@ -21,12 +51,29 @@ export default function InputSection() {
   };
 
   const toggleRecording = () => {
+    if (!recognition) {
+      alert('Speech recognition is not supported in your browser');
+      return;
+    }
+
+    if (isRecording) {
+      recognition.stop();
+    } else {
+      recognition.start();
+    }
     setIsRecording(!isRecording);
+  };
+
+  const handleVoiceSubmit = async (transcript) => {
+    if (transcript.trim()) {
+      await searchProducts(transcript, true); // true indicates voice input
+      setInput('');
+    }
   };
 
   const handleSubmit = async () => {
     if (input.trim()) {
-      await searchProducts(input);
+      await searchProducts(input, false); // false indicates text input
       setInput('');
     }
   };
@@ -55,7 +102,7 @@ export default function InputSection() {
         <div className={styles.actionsContainer}>
           <button
             onClick={toggleRecording}
-            className={`${styles.actionButton} ${styles.micButton}`}
+            className={`${styles.actionButton} ${styles.micButton} ${isRecording ? styles.recording : ''}`}
             aria-label={isRecording ? 'Stop recording' : 'Start recording'}
           >
             <Mic size={24} />

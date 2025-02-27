@@ -10,7 +10,7 @@ export default function InputSection() {
   const [isRecording, setIsRecording] = useState(false);
   const [input, setInput] = useState('');
   const [recognition, setRecognition] = useState(null);
-  const [toast, setToast] = useState({ message: '', visible: false });
+  // const [toast, setToast] = useState({ message: '', visible: false });
   const [hasSpoken, setHasSpoken] = useState(false);
 
   useEffect(() => {
@@ -37,8 +37,8 @@ export default function InputSection() {
       recognition.onend = () => {
         setIsRecording(false);
         if (!hasSpoken) {
-          setToast({ message: 'No speech detected. Please try again.', visible: true });
-          setTimeout(() => setToast({ message: '', visible: false }), 3000);
+          // setToast({ message: 'No speech detected. Please try again.', visible: true });
+          // setTimeout(() => setToast({ message: '', visible: false }), 3000);
         }
         setHasSpoken(false);
       };
@@ -136,11 +136,11 @@ export default function InputSection() {
           </button>
         </div>
       </div>
-      {toast.visible && (
+      {/* {toast.visible && (
         <div className={styles.toast}>
           {toast.message}
         </div>
-      )}
+      )} */}
     </div>
   );
 }

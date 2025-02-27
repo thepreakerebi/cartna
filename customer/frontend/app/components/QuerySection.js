@@ -81,11 +81,22 @@ export default function QuerySection() {
               <div className={styles.productResults}>
                 {result.products.length > 0 ? (
                   result.products.map((product) => {
-                    // Find the cheapest product in the current result set
-                    const cheapestProduct = result.products.reduce((min, p) => 
+                    // Group products by name and find cheapest in each group
+                    const productsByName = result.products.reduce((groups, p) => {
+                      const name = p.name.toLowerCase();
+                      if (!groups[name]) {
+                        groups[name] = [];
+                      }
+                      groups[name].push(p);
+                      return groups;
+                    }, {});
+
+                    // Check if current product is cheapest in its group
+                    const productName = product.name.toLowerCase();
+                    const cheapestInGroup = productsByName[productName].reduce((min, p) => 
                       p.unitPrice < min.unitPrice ? p : min
                     );
-                    const isCheapest = product._id === cheapestProduct._id;
+                    const isCheapest = product._id === cheapestInGroup._id;
 
                     return (
                       <div key={product._id} className={styles.productCard}>

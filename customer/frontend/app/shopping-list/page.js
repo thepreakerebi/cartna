@@ -36,6 +36,13 @@ export default function ShoppingListPage() {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey && !isProcessing && list.trim()) {
+      e.preventDefault();
+      handleSave();
+    }
+  };
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -63,6 +70,7 @@ export default function ShoppingListPage() {
         <textarea
           value={list}
           onChange={(e) => setList(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Enter your shopping list here..."
           className={styles.textarea}
         />

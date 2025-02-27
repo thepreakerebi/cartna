@@ -46,14 +46,16 @@ export default function ShoppingListPage() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <button 
-          onClick={() => router.back()} 
-          className={styles.backButton}
-          aria-label="Go back"
-        >
-          <ArrowLeft size={24} />
-        </button>
-        <h1>Shopping List</h1>
+        <div className={styles.headerLeft}>
+          <button 
+            onClick={() => router.back()} 
+            className={styles.backButton}
+            aria-label="Go back"
+          >
+            <ArrowLeft size={24} />
+          </button>
+          <h1>Shopping List</h1>
+        </div>
         {isSaved && (
           <button 
             onClick={() => router.push('/cart')} 

@@ -87,7 +87,7 @@ export default function InputSection() {
             value={input}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
-            placeholder="Type what you want to buy or use voice command"
+            placeholder={isRecording ? '' : "Type what you want to buy or use voice command"}
             className={styles.input}
             disabled={isRecording}
           />

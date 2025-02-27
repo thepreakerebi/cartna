@@ -57,7 +57,7 @@
 }
 
 .recordingIndicator {
-  color: var(--primary);
+  color: var(--text-primary);
   font-weight: 600;
   display: flex;
   align-items: center;

@@ -14,6 +14,7 @@ export default function ShoppingListPage() {
   const { list, setList, isProcessing, processShoppingList } = useShoppingList();
   const { fetchCart } = useCart();
   const [isSaved, setIsSaved] = useState(false);
+  const [toast, setToast] = useState({ message: '', visible: false });
 
   useEffect(() => {
     if (!token) {
@@ -28,6 +29,8 @@ export default function ShoppingListPage() {
       await processShoppingList(list);
       await fetchCart(); // Fetch updated cart data
       setIsSaved(true);
+      setToast({ message: 'Products successfully added to cart', visible: true });
+      setTimeout(() => setToast({ message: '', visible: false }), 3000);
     } catch (error) {
       console.error('Error saving shopping list:', error);
     }
@@ -71,6 +74,11 @@ export default function ShoppingListPage() {
           {isProcessing ? 'Processing...' : 'Save List'}
         </button>
       </main>
+      {toast.visible && (
+        <div className={styles.toast}>
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

@@ -10,9 +10,9 @@ export default function InputSection() {
   const [isRecording, setIsRecording] = useState(false);
   const [input, setInput] = useState('');
   const [recognition, setRecognition] = useState(null);
+  const [toast, setToast] = useState({ message: '', visible: false });
 
   useEffect(() => {
-    // Initialize speech recognition
     if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
       const SpeechRecognition = window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
@@ -34,11 +34,15 @@ export default function InputSection() {
 
       recognition.onend = () => {
         setIsRecording(false);
+        if (!input.trim()) {
+          setToast({ message: 'No speech detected. Please try again.', visible: true });
+          setTimeout(() => setToast({ message: '', visible: false }), 3000);
+        }
       };
 
       setRecognition(recognition);
     }
-  }, []);
+  }, [input]);
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
@@ -128,6 +132,11 @@ export default function InputSection() {
           </button>
         </div>
       </div>
+      {toast.visible && (
+        <div className={styles.toast}>
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

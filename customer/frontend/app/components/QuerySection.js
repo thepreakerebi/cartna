@@ -160,7 +160,7 @@ export default function QuerySection() {
                 )}
               </div>
             </div>
-          ))})
+          ))}
         </div>
       )}
         {toast.visible && (

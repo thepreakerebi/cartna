@@ -6,11 +6,12 @@ exports.processShoppingList = async (req, res) => {
     try {
         const { list } = req.body;
         
-        // Parse the shopping list using NLP
+        // Parse the shopping list using NLP and handle conjunctions
         const doc = nlp(list);
-        const items = doc.nouns().out('array')
+        const items = doc.terms()
+            .out('array')
             .map(item => item.toLowerCase().trim())
-            .filter(item => item.length > 0);
+            .filter(item => item !== 'and' && item.length > 0);
 
         if (items.length === 0) {
             return res.status(400).json({

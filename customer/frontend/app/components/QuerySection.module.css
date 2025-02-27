@@ -234,3 +234,18 @@
   90% { opacity: 1; transform: translate(-50%, 0); }
   100% { opacity: 0; transform: translate(-50%, 20px); }
 }
+.productHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.cheapestBadge {
+  background-color: var(--primary);
+  color: var(--text-primary);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}

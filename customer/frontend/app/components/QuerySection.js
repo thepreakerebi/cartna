@@ -80,69 +80,83 @@ export default function QuerySection() {
               </div>
               <div className={styles.productResults}>
                 {result.products.length > 0 ? (
-                  result.products.map((product) => (
-                    <div key={product._id} className={styles.productCard}>
-                      <div className={styles.productImage}>
-                        {product.images && product.images.length > 0 && (
-                          <Image
-                            src={product.images[0]}
-                            alt={product.name}
-                            width={200}
-                            height={200}
-                            style={{ objectFit: "cover" }}
-                            priority
-                          />
-                        )}
-                      </div>
-                      <div className={styles.productDetailsContainer}>
-                        <div className={styles.productInfo}>
-                          <h3 
-                            onClick={() => {
-                              router.push(`/product/${product._id}`);
-                            }} 
-                            style={{ 
-                              cursor: 'pointer', 
-                              textDecoration: 'none', 
-                              transition: 'text-decoration 0.2s' 
-                            }} 
-                            onMouseEnter={(e) => e.target.style.textDecoration = 'underline'} 
-                            onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
-                          >
-                            {product.name}
-                          </h3>
-                          <p className={styles.price}>RWF {product.unitPrice.toLocaleString()}</p>
-                          <p className={styles.supermarket}>
-                            {product.supermarket}
-                          </p>
+                  result.products.map((product) => {
+                    // Find the cheapest product in the current result set
+                    const cheapestProduct = result.products.reduce((min, p) => 
+                      p.unitPrice < min.unitPrice ? p : min
+                    );
+                    const isCheapest = product._id === cheapestProduct._id;
+
+                    return (
+                      <div key={product._id} className={styles.productCard}>
+                        <div className={styles.productImage}>
+                          {product.images && product.images.length > 0 && (
+                            <Image
+                              src={product.images[0]}
+                              alt={product.name}
+                              width={200}
+                              height={200}
+                              style={{ objectFit: "cover" }}
+                              priority
+                            />
+                          )}
                         </div>
-                        <div className={styles.productAction}>
-                          <button
-                            onClick={() => handleAddToCart(product._id)}
-                            className={styles.addToCartButton}
-                            disabled={addingToCart === product._id || cartLoading}
-                          >
-                            {addingToCart === product._id ? 'Adding...' : 'Add to Cart'}
-                          </button>
+                        <div className={styles.productDetailsContainer}>
+                          <div className={styles.productInfo}>
+                            <div className={styles.productHeader}>
+                              <h3 
+                                onClick={() => {
+                                  router.push(`/product/${product._id}`);
+                                }} 
+                                style={{ 
+                                  cursor: 'pointer', 
+                                  textDecoration: 'none', 
+                                  transition: 'text-decoration 0.2s' 
+                                }} 
+                                onMouseEnter={(e) => e.target.style.textDecoration = 'underline'} 
+                                onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                              >
+                                {product.name}
+                              </h3>
+                              {isCheapest && (
+                                <span className={styles.cheapestBadge}>
+                                  Cheapest
+                                </span>
+                              )}
+                            </div>
+                            <p className={styles.price}>RWF {product.unitPrice.toLocaleString()}</p>
+                            <p className={styles.supermarket}>
+                              {product.supermarket}
+                            </p>
+                          </div>
+                          <div className={styles.productAction}>
+                            <button
+                              onClick={() => handleAddToCart(product._id)}
+                              className={styles.addToCartButton}
+                              disabled={addingToCart === product._id || cartLoading}
+                            >
+                              {addingToCart === product._id ? 'Adding...' : 'Add to Cart'}
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className={styles.noResults}>
                     This product is not available
                   </div>
                 )}
               </div>
-              {searchError && <div className={styles.error}>{searchError}</div>}
             </div>
-          ))}
+          ))})
         </div>
       )}
-      {toast.visible && (
-        <div className={styles.toast}>
-          {toast.message}
-        </div>
-      )}
-    </section>
-  );
+        {toast.visible && (
+          <div className={styles.toast}>
+            {toast.message}
+          </div>
+        )}
+      </section>
+    );
 }

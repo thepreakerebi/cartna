@@ -2,12 +2,15 @@
 
 import { CartProvider } from '@/store/cartContext';
 import { SearchProvider } from '@/store/searchContext';
+import { ShoppingListProvider } from '@/store/shoppingListContext';
 
 export function Providers({ children }) {
   return (
     <CartProvider>
       <SearchProvider>
-        {children}
+        <ShoppingListProvider>
+          {children}
+        </ShoppingListProvider>
       </SearchProvider>
     </CartProvider>
   );

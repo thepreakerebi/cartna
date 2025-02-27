@@ -1,17 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ShoppingCart } from 'lucide-react';
 import useAuthStore from '@/store/auth';
+import { useShoppingList } from '@/store/shoppingListContext';
+import { useCart } from '@/store/cartContext';
 import styles from './page.module.css';
 
 export default function ShoppingListPage() {
   const router = useRouter();
   const { token } = useAuthStore();
-  const [list, setList] = useState('');
+  const { list, setList, isProcessing, processShoppingList } = useShoppingList();
+  const { fetchCart } = useCart();
   const [isSaved, setIsSaved] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (!token) {
@@ -22,24 +24,12 @@ export default function ShoppingListPage() {
   const handleSave = async () => {
     if (!list.trim()) return;
 
-    setIsLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/shopping-list/process`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ list })
-      });
-
-      if (response.ok) {
-        setIsSaved(true);
-      }
+      await processShoppingList(list);
+      await fetchCart(); // Fetch updated cart data
+      setIsSaved(true);
     } catch (error) {
       console.error('Error saving shopping list:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -75,10 +65,10 @@ export default function ShoppingListPage() {
         />
         <button 
           onClick={handleSave}
-          disabled={isLoading || !list.trim()}
+          disabled={isProcessing || !list.trim()}
           className={styles.saveButton}
         >
-          {isLoading ? 'Processing...' : 'Save List'}
+          {isProcessing ? 'Processing...' : 'Save List'}
         </button>
       </main>
     </div>

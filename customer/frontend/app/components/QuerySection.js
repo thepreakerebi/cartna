@@ -63,11 +63,30 @@ export default function QuerySection() {
           <div className={styles.exampleQueries}>
             <h3>Try these examples:</h3>
             <ul>
-              <li>{"I need rice, cooking oil, and sugar"}</li>
-              <li>{"Looking for coca-cola"}</li>
-              <li>{"I want some beef"}</li>
-              <li>{"Iyange milk"}</li>
-              <li>{"I need colgate toothpaste"}</li>
+              {[
+                "I need rice, cooking oil, and sugar",
+                "Looking for coca-cola",
+                "I want some beef",
+                "Iyange milk",
+                "I need colgate toothpaste"
+              ].map((query, index) => (
+                <li 
+                  key={index}
+                  onClick={() => {
+                    const inputElement = document.querySelector('input[type="text"]');
+                    if (inputElement) {
+                      inputElement.value = query;
+                      const event = new Event('input', { bubbles: true });
+                      inputElement.dispatchEvent(event);
+                      inputElement.focus();
+                    }
+                  }}
+                  style={{ cursor: 'pointer' }}
+                  className={styles.exampleQuery}
+                >
+                  {query}
+                </li>
+              ))}
             </ul>
           </div>
         </>

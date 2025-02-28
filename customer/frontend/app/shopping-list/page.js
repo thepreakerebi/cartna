@@ -67,6 +67,7 @@ export default function ShoppingListPage() {
         )}
       </header>
       <main className={styles.main}>
+        <p>Enter your shopping list below to get the cheapest of each item in your list added to your cart automatically:</p>
         <textarea
           value={list}
           onChange={(e) => setList(e.target.value)}

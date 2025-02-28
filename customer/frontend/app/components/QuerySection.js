@@ -76,7 +76,12 @@ export default function QuerySection() {
                     const inputElement = document.querySelector('input[type="text"]');
                     if (inputElement) {
                       inputElement.value = query;
-                      const event = new Event('input', { bubbles: true });
+                      const event = new InputEvent('input', {
+                        bubbles: true,
+                        cancelable: true,
+                        data: query,
+                        inputType: 'insertText'
+                      });
                       inputElement.dispatchEvent(event);
                       inputElement.focus();
                     }

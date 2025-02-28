@@ -7,7 +7,7 @@
 .cartHeader {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
+  justify-content: space-between;
   padding: var(--space-md);
   position: fixed;
   top: 0;
@@ -16,6 +16,29 @@
   background-color: var(--background);
   z-index: 10;
   border-bottom: 1px solid var(--border);
+}
+
+.cartTitleContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.clearCartButton {
+  background: none;
+  border: 1px solid var(--error);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
+  color: var(--text-primary);
+  font-size: var(--font-md);
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--error);
+    color: var(--background);
+    transition: background-color 0.2s;
+  }
 }
 
 .backButton {

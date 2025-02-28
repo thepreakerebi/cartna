@@ -66,10 +66,12 @@ export default function CartPage() {
     return (
       <div className={styles.container}>
         <div className={styles.cartHeader}>
+          <div className={styles.cartTitleContainer}>
           <button onClick={handleBackClick} className={styles.backButton}>
             <ArrowLeft size={24} />
           </button>
           <h1 className={styles.cartHeaderText}>Your Cart</h1>
+        </div>
         </div>
         <div className={styles.emptyCart}>
           <h2>Your cart is empty</h2>
@@ -82,10 +84,12 @@ export default function CartPage() {
   return (
     <div className={styles.container}>
       <div className={styles.cartHeader}>
-        <button onClick={handleBackClick} className={styles.backButton}>
-          <ArrowLeft size={24} />
-        </button>
-        <h1 className={styles.cartHeaderText}>Your Cart</h1>
+        <div className={styles.cartTitleContainer}>
+          <button onClick={handleBackClick} className={styles.backButton}>
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className={styles.cartHeaderText}>Your Cart</h1>
+        </div>
         <button 
           onClick={clearCart} 
           className={styles.clearCartButton}

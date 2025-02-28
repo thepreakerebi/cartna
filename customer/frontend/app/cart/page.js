@@ -9,7 +9,7 @@ import { useEffect } from 'react';
 import useAuthStore from '@/store/auth';
 
 export default function CartPage() {
-  const { cartItems, updateCartItemQuantity, updateLocalCartItemQuantity, removeFromCart, loading } = useCart();
+  const { cartItems, updateCartItemQuantity, updateLocalCartItemQuantity, removeFromCart, loading, clearCart } = useCart();
   const router = useRouter();
   const { token } = useAuthStore();
 
@@ -86,6 +86,12 @@ export default function CartPage() {
           <ArrowLeft size={24} />
         </button>
         <h1 className={styles.cartHeaderText}>Your Cart</h1>
+        <button 
+          onClick={clearCart} 
+          className={styles.clearCartButton}
+        >
+          Clear Cart
+        </button>
       </div>
       <div className={styles.mainCartContent}>
         <p className={styles.cartCount}>{cartItems.length} items in your cart</p>

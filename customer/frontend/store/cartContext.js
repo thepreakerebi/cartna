@@ -137,6 +137,21 @@ export function CartProvider({ children }) {
     }
   };
 
+  const clearCart = async () => {
+    if (!token) return;
+
+    try {
+      const response = await api.delete('/cart', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setCartItems([]);
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+    }
+  };
+
   useEffect(() => {
     setMounted(true);
     fetchCart();
@@ -155,7 +170,8 @@ export function CartProvider({ children }) {
         removeFromCart,
         updateCartItemQuantity,
         updateLocalCartItemQuantity,
-        fetchCart
+        fetchCart,
+        clearCart
       }}
     >
       {children}

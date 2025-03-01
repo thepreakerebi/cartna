@@ -67,7 +67,7 @@ export default function QuerySection() {
                 "I need rice, cooking oil, and sugar",
                 "Looking for coca-cola",
                 "I want some beef",
-                "Iyange milk",
+                "Inyange milk",
                 "I need colgate toothpaste"
               ].map((query, index) => (
                 <li 
